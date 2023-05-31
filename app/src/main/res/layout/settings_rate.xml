@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/flRate"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toBottomOf="@+id/tvOtherTitle"
+    tools:showIn="@layout/activity_settings">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center_vertical"
+        android:layout_marginEnd="@dimen/margin4dp"
+        app:srcCompat="@drawable/ic_arrow"/>
+
+    <TextView
+        android:id="@+id/tvRateTitle"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/settingsHeight42dp"
+        android:fontFamily="sans-serif-condensed-light"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/margin8dp"
+        android:text="@string/rate_title"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="@dimen/settingsTextSize"/>
+
+</FrameLayout>

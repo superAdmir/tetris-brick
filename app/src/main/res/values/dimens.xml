@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="mainTextSize">32sp</dimen>
+    <dimen name="textSize30sp">30sp</dimen>
+    <dimen name="maxTextSize">24sp</dimen>
+    <dimen name="midTextSize">20sp</dimen>
+    <dimen name="minTextSize">16sp</dimen>
+    <dimen name="textSize14">14sp</dimen>
+    <dimen name="textSize22">22sp</dimen>
+    <dimen name="textSize18">18sp</dimen>
+
+    <dimen name="minPadding">4dp</dimen>
+    <dimen name="midPadding">20dp</dimen>
+
+    <dimen name="mainMargin">10dp</dimen>
+    <dimen name="smallMargin">16dp</dimen>
+    <dimen name="maxMargin">40dp</dimen>
+    <dimen name="midMargin">36dp</dimen>
+    <dimen name="margin4dp">4dp</dimen>
+    <dimen name="margin8dp">8dp</dimen>
+    <dimen name="margin16dp">16dp</dimen>
+
+    <dimen name="dimen48dp">48dp</dimen>
+    <dimen name="dimen56dp">56dp</dimen>
+    <dimen name="dimen24dp">24dp</dimen>
+
+    <dimen name="maxRadius">30dp</dimen>
+    <dimen name="midRadius">8dp</dimen>
+    <dimen name="minRadius">30dp</dimen>
+
+    <dimen name="elevation">10dp</dimen>
+    <dimen name="zero_dp">0dp</dimen>
+    <dimen name="settingsHeight42dp">42dp</dimen>
+    <dimen name="rotateIconPadding">32dp</dimen>
+    <dimen name="margin">32dp</dimen>
+    <dimen name="moveDownIconPadding">32dp</dimen>
+    <dimen name="pauseIconPadding">16dp</dimen>
+    <dimen name="scoresTextSize">18sp</dimen>
+    <dimen name="scoresTitleSize">30sp</dimen>
+    <dimen name="scoresListSize">22sp</dimen>
+    <dimen name="shareButtonPadding">8dp</dimen>
+    <dimen name="buttonsStartSize">20dp</dimen>
+    <dimen name="settingsTextSize">16sp</dimen>
+    <dimen name="colorPickerTextSize">12sp</dimen>
+    <dimen name="ButtonsPadding">4dp</dimen>
+    <dimen name="speedPickerTextSize">14sp</dimen>
+</resources>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="2dp"
+    android:background="@drawable/shape_start_activity">
+
+    <LinearLayout
+        android:id="@+id/llScores"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:background="@drawable/shape_scores"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvScoresTitle"
+            style="@style/text_view_style"
+            android:fontFamily="sans-serif-condensed-light"
+            android:text="@string/scores"
+            android:textColor="@color/colorPrimary"
+            android:textSize="@dimen/scoresTitleSize" />
+
+        <TextView
+            android:id="@+id/tvFirstScore"
+            style="@style/text_view_style"
+            android:fontFamily="sans-serif-condensed-light"
+            android:text="@string/initial_score"
+            android:textColor="@color/colorAccent"
+            android:textSize="@dimen/midTextSize"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvSecondScore"
+            style="@style/text_view_style"
+            android:fontFamily="sans-serif-condensed-light"
+            android:text="@string/initial_score"
+            android:textColor="@color/colorPrimary"
+            android:textSize="@dimen/midTextSize" />
+
+        <TextView
+            android:id="@+id/tvThirdScore"
+            style="@style/text_view_style"
+            android:fontFamily="sans-serif-condensed-light"
+            android:text="@string/initial_score"
+            android:textColor="@color/colorPrimary"
+            android:textSize="@dimen/midTextSize" />
+    </LinearLayout>
+
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="680dp"
+        ads:adSize="BANNER"
+        ads:adUnitId="ca-app-pub-3940256099942544/6300978111"
+        tools:layout_editor_absoluteY="710dp" />
+</androidx.constraintlayout.widget.ConstraintLayout>

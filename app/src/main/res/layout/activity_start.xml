@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/llStart"
+    style="@style/linear_layout_style">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvGameTitle"
+                style="@style/text_view_style"
+                android:fontFamily="sans-serif-condensed"
+                android:text="@string/game_title"
+                android:textColor="@color/white"
+                android:textSize="@dimen/mainTextSize" />
+
+            <Button
+                android:id="@+id/bStartGame"
+                style="@style/main_buttons_style"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="@string/new_game" />
+
+            <Button
+                android:id="@+id/bOpenScores"
+                style="@style/main_buttons_style"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="@string/scores_text" />
+
+            <Button
+                android:id="@+id/bOpenSettings"
+                style="@style/main_buttons_style"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="@string/settings_text" />
+
+        </LinearLayout>
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="680dp"
+            ads:adSize="BANNER"
+            ads:adUnitId="ca-app-pub-3940256099942544/6300978111"
+            tools:layout_editor_absoluteY="710dp" />
+    </RelativeLayout>
+</LinearLayout>

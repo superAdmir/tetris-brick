@@ -1,0 +1,103 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorPrimaryDark</item>
+        <item name="android:windowAnimationStyle">@style/CustomActivityAnimation</item>
+    </style>
+
+    <style name="CustomActivityAnimation" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/slide_in_right</item>
+        <item name="android:activityOpenExitAnimation">@anim/slide_out_left</item>
+        <item name="android:activityCloseEnterAnimation">@anim/slide_in_left</item>
+        <item name="android:activityCloseExitAnimation">@anim/slide_out_right</item>
+    </style>
+
+    <style name="main_activity_button_Style">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+    </style>
+
+    <style name="main_buttons_style">
+        <item name="android:layout_marginStart">@dimen/maxMargin</item>
+        <item name="android:layout_marginEnd">@dimen/maxMargin</item>
+        <item name="android:background">@drawable/button_shape</item>
+        <item name="android:textColor">@color/colorPrimaryDark</item>
+        <item name="android:textSize">@dimen/buttonsStartSize</item>
+        <item name="android:layout_marginTop">@dimen/mainMargin</item>
+        <item name="android:layout_marginBottom">@dimen/mainMargin</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">@dimen/ButtonsPadding</item>
+    </style>
+
+    <style name="linear_layout_style">
+        <item name="android:orientation">vertical</item>
+        <item name="android:layout_margin">2dp</item>
+        <item name="android:background">@drawable/shape_start_activity</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+    </style>
+
+    <style name="text_view_style">
+        <item name="android:textAlignment">center</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:layout_margin">@dimen/mainMargin</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="ImageViewStyle">
+        <item name="android:layout_weight">0.15</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">0dp</item>
+    </style>
+
+    <style name="ColorCircleStyle">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:layout_marginBottom">4dp</item>
+        <item name="android:background">@drawable/button_circle</item>
+        <item name="android:padding">@dimen/margin8dp</item>
+    </style>
+
+    <style name="SpeedItemsStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/button_speed_shape</item>
+        <item name="android:fontFamily">sans-serif-condensed-light</item>
+        <item name="android:minWidth">@dimen/dimen56dp</item>
+        <item name="android:padding">@dimen/minPadding</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:textColor">@color/colorPrimaryDark</item>
+        <item name="android:minLines">1</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:maxWidth">68dp</item>
+        <item name="android:singleLine">false</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:textSize">@dimen/speedPickerTextSize</item>
+    </style>
+
+    <style name="ControlButtonStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:adjustViewBounds">true</item>
+        <item name="android:background">@drawable/button_circle</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="DividerStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1px</item>
+        <item name="android:background">@color/colorPrimaryDark</item>
+    </style>
+
+</resources>

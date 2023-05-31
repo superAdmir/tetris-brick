@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/llBase"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:id="@+id/frameLayout"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guidelineVertical"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.tb.tetrisbrick.game.ui.main.views.PlayingAreaView
+            android:id="@+id/playingArea"
+            android:layout_width="match_parent"
+            android:layout_height="720dp"
+            android:background="@color/white"></com.tb.tetrisbrick.game.ui.main.views.PlayingAreaView>
+
+    </FrameLayout>
+
+    <View
+        android:layout_width="1px"
+        android:background="@color/black"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/frameLayout"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineVertical"
+        android:layout_width="wrap_content"
+        android:layout_height="600dp"
+        android:layout_marginBottom="32dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintGuide_percent="0.75" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/llScore"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="68dp"
+        android:background="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guidelineVertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvScoreTitle"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dimen48dp"
+            android:layout_marginTop="@dimen/margin16dp"
+            android:fontFamily="sans-serif-condensed"
+            android:gravity="bottom|center_horizontal"
+            android:text="@string/score_text"
+            android:textColor="@color/colorPrimary"
+            android:textSize="@dimen/textSize18"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <com.tb.tetrisbrick.game.ui.main.views.ScoreView
+            android:id="@+id/tvScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin4dp"
+            android:layout_marginEnd="@dimen/margin4dp"
+            android:fontFamily="sans-serif-condensed"
+            android:gravity="center_horizontal"
+            android:singleLine="false"
+            android:text="@string/initial_score"
+            android:textAlignment="gravity"
+            android:textColor="@color/colorAccent"
+            android:textSize="@dimen/scoresTextSize"
+            app:layout_constraintBottom_toTopOf="@id/guideline"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvScoreTitle"></com.tb.tetrisbrick.game.ui.main.views.ScoreView>
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.2" />
+
+        <TextView
+            android:id="@+id/tvNextFigureTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin16dp"
+            android:fontFamily="sans-serif-condensed-light"
+            android:gravity="bottom|center_horizontal"
+            android:text="@string/next"
+            android:textColor="@color/colorPrimary"
+            android:textSize="@dimen/minTextSize"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/guideline" />
+
+        <com.tb.tetrisbrick.game.ui.main.views.PreviewAreaView
+            android:id="@+id/tvNextFigure"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginTop="@dimen/margin8dp"
+            android:background="@color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvNextFigureTitle"></com.tb.tetrisbrick.game.ui.main.views.PreviewAreaView>
+
+        <ImageView
+            android:id="@+id/ivRotate"
+            style="@style/ControlButtonStyle"
+            android:layout_margin="@dimen/margin4dp"
+            android:layout_marginBottom="@dimen/margin"
+            android:contentDescription="@string/content_description_rotate"
+            android:padding="@dimen/rotateIconPadding"
+            app:layout_constraintBottom_toTopOf="@+id/ivMoveDown"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/ic_rotate" />
+
+        <ImageView
+            android:id="@+id/ivMoveDown"
+            style="@style/ControlButtonStyle"
+            android:layout_margin="@dimen/margin4dp"
+            android:contentDescription="@string/content_description_move_down"
+            android:padding="@dimen/moveDownIconPadding"
+            app:layout_constraintBottom_toTopOf="@+id/ivPausePlay"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ivRotate"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/ic_down" />
+
+        <ImageView
+            android:id="@+id/ivPausePlay"
+            style="@style/ControlButtonStyle"
+            android:layout_margin="@dimen/margin4dp"
+            android:layout_marginBottom="@dimen/margin16dp"
+            android:contentDescription="@string/content_description_pause_or_resume_game"
+            android:padding="@dimen/pauseIconPadding"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/ic_pause" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="720dp"
+        ads:adSize="BANNER"
+        ads:adUnitId="ca-app-pub-3940256099942544/6300978111"
+        ads:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints" />
+</androidx.constraintlayout.widget.ConstraintLayout>
