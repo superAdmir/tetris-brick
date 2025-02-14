@@ -50,7 +50,8 @@
             android:layout_height="match_parent"
             android:layout_marginTop="680dp"
             ads:adSize="BANNER"
-            ads:adUnitId="ca-app-pub-3940256099942544/6300978111"
-            tools:layout_editor_absoluteY="710dp" />
+            ads:adUnitId="ca-app-pub-6402675413704299/2296233840"
+            tools:layout_editor_absoluteY="710dp">
+        </com.google.android.gms.ads.AdView>
     </RelativeLayout>
 </LinearLayout>

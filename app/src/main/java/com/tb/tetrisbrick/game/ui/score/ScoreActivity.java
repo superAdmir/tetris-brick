@@ -79,7 +79,7 @@ public class ScoreActivity<privateButton> extends AppCompatActivity {
     //Method is used to load the rewarded ads
     private void loadRewardedAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
-        RewardedAd.load(this, "ca-app-pub-3940256099942544/5224354917", adRequest, new RewardedAdLoadCallback() {
+        RewardedAd.load(this, "ca-app-pub-6402675413704299/4287972368", adRequest, new RewardedAdLoadCallback() {
             @Override
             public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
                 // Handle the error.
