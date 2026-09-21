@@ -44,10 +44,10 @@ All prior audit points independently reverified true as of this session:
    - **Color-preference migration**: `SharedPreferencesManager` used to store the figure color as a raw `R.color.xxx` resource ID (an int), which is only stable within a single build - AAPT2 can (and, given how much colors.xml changed in this pass, almost certainly did) renumber it. Migrated to a stable string key (`Values.FIGURE_COLOR_*` constants, e.g. `"l_figure"`) stored under a new preference key (`default_color_v2`); `Utils.resolveColorResId(key)` resolves it to the *current* build's actual resource ID on every read, so renumbering can never point at the wrong (or a nonexistent) resource. On first read after upgrade, if only the old int-keyed entry exists, it is **not** reinterpreted (an old ID can't be trusted to still mean the same color) - it falls back to the default color key and the legacy entry is removed, per "provide a safe fallback" rather than trying to recover the exact old choice. Covered by `SharedPreferencesManagerTest` (fresh install, legacy-only, current-format, both-present cases).
    - High scores (`first/second/third_value`) were already stored as plain ints, not resource IDs - no migration needed there, preserved as-is.
    - **Active-game save/restore**: new `GameStateStore`/`SavedGame` (in `data/`) persist the board (`NetManager.getNetSnapshot()`, flattened to a bit-string), the falling figure's type + grid position, the next-figure preview type, the score, and the board width, versioned (`SAVED_GAME_SCHEMA_VERSION`) and fully validated on load (wrong version, dimension mismatch, corrupted cell string, or an unrecognized figure-type name all return `null` rather than throwing or restoring a broken board). `MainActivity.onCreate()` uses the standard Android signal for "this is a recreation, not a fresh launch" (`savedInstanceState != null`) to choose `PlayingAreaView.restoreGameIfAvailable()` over `startFreshGame()`; the save itself is written in `onStop()` (so it survives whether or not `onDestroy()` ever runs - the actual process-death case) and cleared on game-over or when a genuinely new game starts. Restored games always come back **paused** (`isTimerRunning=false`, pause icon shown) rather than immediately resuming the fall. Figure reconstruction needed a new `FigureFactory.getFigureAtGridPosition()` - the existing 5-arg `getFigure()` overload is rotation-specific (it assumes its `point` argument is the *pre-rotation* figure's position and applies bounding-box adjustments for the transition), which would have misplaced a figure reconstructed fresh from a save. Covered by `GameStateStoreTest` (round-trip of every field, and each validation-rejection case).
-6. **Design refresh** — DONE for the "cohesive dark theme + responsive layout" core. Dark navy/charcoal + cyan/violet accent theme applied across all 4 screens (colors.xml/styles.xml + every drawable/layout touching color). Fixed the 720dp/680dp/700dp hardcoded ad-banner-placement bug on all 4 screens: every screen is now a ConstraintLayout with the AdView pinned to the bottom (`wrap_content` height, `layout_constraintBottom_toBottomOf="parent"`) and game/menu content filling the space above it via `layout_constraintBottom_toTopOf="@id/adView"` - no more fixed-height assumptions. Added edge-to-edge system-bar inset handling (`EdgeToEdgeUtils`, required now that targetSdk 36 enforces edge-to-edge) to all 4 activities. `Switch` -> `SwitchCompat` for consistent theming. Lint clean (0 errors; only pre-existing/deliberate warnings remain, e.g. intentional portrait lock).
-   - **Not done**: haptics, font-scaling/small-screen device testing (couldn't get an emulator running in this sandboxed environment - see blocker note below), animations beyond what already existed, empty-state polish beyond the existing "0" score defaults.
-7. **Tests** — NetManager rotation + line-clear coverage done (Robolectric-backed). Still need: save/restore, preference migration, instrumentation smoke test run.
-8. **Docs** — this file (kept current throughout). Still need: README rewrite (drop "No ads" claim, document real feature set), release checklist (production AdMob IDs, signing, versionCode, Data safety, internal testing, manual QA).
+6. **Design refresh** — DONE for the "cohesive dark theme + responsive layout" core, plus haptics added afterward (commit `5ff14b4`). Dark navy/charcoal + cyan/violet accent theme applied across all 4 screens (colors.xml/styles.xml + every drawable/layout touching color). Fixed the 720dp/680dp/700dp hardcoded ad-banner-placement bug on all 4 screens: every screen is now a ConstraintLayout with the AdView pinned to the bottom (`wrap_content` height, `layout_constraintBottom_toBottomOf="parent"`) and game/menu content filling the space above it via `layout_constraintBottom_toTopOf="@id/adView"` - no more fixed-height assumptions. Added edge-to-edge system-bar inset handling (`EdgeToEdgeUtils`, required now that targetSdk 36 enforces edge-to-edge) to all 4 activities. `Switch` -> `SwitchCompat` for consistent theming. Haptic feedback (`performHapticFeedback`, respects the system setting) on rotate/move-down/pause taps, line-clear, and game-over. Lint clean (0 errors; only pre-existing/deliberate warnings remain, e.g. intentional portrait lock).
+   - **Not done / not verified**: actual on-device rendering, font-scaling and small-screen behavior, and how the haptics feel - all blocked on the no-working-emulator issue below. The layout math and lint are clean, but nobody has looked at a rendered screen.
+7. **Tests** — DONE for what's unit-testable. 19 Robolectric-backed unit tests total: `NetManagerTest` (init, rotation collision x4, line-clear x2), `SharedPreferencesManagerTest` (color migration x4), `GameStateStoreTest` (save/restore round-trip + 5 validation-rejection cases). `ExampleInstrumentedTest` modernized to current androidx.test APIs and confirmed to compile (`:app:compileDebugAndroidTestSources`), but **not executed** - no working emulator/device in this environment. Lint (`:app:lintDebug`) clean.
+8. **Docs** — DONE. This file (kept current throughout); `README.md` rewritten (dropped the false "No ads" claim, documented the real feature set including save/restore and the ad/consent behavior, removed the "share your score" feature claim since that code path was found to be dead/unwired - `Values.SHARE_INTENT_TYPE` and `R.string.share_body_part_second` exist but nothing ever constructs a share `Intent`, confirmed via lint's unused-resource warning and a full-codebase grep); `RELEASE_CHECKLIST.md` added covering signing, production AdMob IDs, version, Play Console Data safety, internal testing, and the manual-QA items that still need a real device specifically because of the emulator blocker.
 
 ## Verification blocker: no working emulator in this environment
 
@@ -82,28 +82,32 @@ Tried to boot an AVD (`tetris_test`, Pixel 5 profile, android-35 google_apis x86
 
 **minSdk 21 → 24 decision**: `play-services-ads:25.5.0`'s own manifest requires minSdk 24; there is no current, policy-compliant Ads SDK release that still supports API 21-23. Devices on Android 5.0-6.0 (API 21-23) are a vanishing fraction of the active install base by late 2026. Proceeded without asking since the alternative (shipping a years-stale, non-compliant Ads SDK, or dropping ads against explicit user authorization) is clearly worse — flagging here per the instruction to document minSdk impact rather than change it silently.
 
-## Files changed so far
+## Commit log (modernize-2026 branch, oldest first)
 
-- `.gitignore` (new)
-- Untracked: `.gradle/**`, `local.properties`, `keystore.properties` (still present locally, gitignored)
-- `gradlew` (restored executable bit)
-
-## Commands run (all from repo root)
-
-```
-./gradlew :app:assembleDebug --console=plain   # BUILD SUCCESSFUL, 53s, 31 tasks
-./gradlew :app:testDebugUnitTest --console=plain  # BUILD SUCCESSFUL, 21 tasks
-```
+1. `1e46d15` — repo hygiene: `.gitignore`, untrack `.gradle/`/`local.properties`/`keystore.properties`
+2. `607131d` — this progress log, created
+3. `28bc094` — toolchain/dependency modernization, ButterKnife → View Binding
+4. `61b4a42` — progress log update
+5. `dbcb3e4` — ads compliance (AdsManager, debug/release ID split, rewarded ads removed)
+6. `4376a6f` — gravity/rendering decoupling, rotation collision fix, POST_NOTIFICATIONS
+7. `5d097d2` — multi-line clear fix for non-contiguous rows
+8. `e414b58` — dark theme + responsive layout (fixes the 720dp ad-placement bug) + edge-to-edge
+9. `b3487cd` — color-preference resource-ID migration
+10. `ce8b613` — active-game save/restore across process death
+11. `5ff14b4` — haptics + instrumentation test modernization
+12. (this commit) — README rewrite, RELEASE_CHECKLIST.md, final progress log update
 
 ## Open decisions / needs user input
 
-- **Signing credential in git history**: `keystore.properties` (with the real release-signing password) was committed in earlier history and remains there since history isn't being rewritten automatically. Recommend: rotate the Play App Signing upload key password and/or scrub history — user's call.
-- **Production AdMob IDs**: none available; release config will use Google's official sample/test IDs clearly isolated to a "not yet configured for monetized release" state until the user supplies real ad unit IDs.
-- **minSdk 21**: keeping unless dependency research forces a bump; will document exact device-support impact if so.
-- **Final versionCode**: pending confirmation against Play Console per user instruction — not incrementing blindly.
+- **Signing credential in git history**: `keystore.properties` (with the real release-signing password) was committed in earlier history and remains there since history isn't being rewritten automatically. Recommend: rotate the Play App Signing upload key password and/or scrub history — user's call. See `RELEASE_CHECKLIST.md` §1.
+- **Production AdMob IDs**: none available; release config falls back to Google's official test IDs (`BuildConfig.ADS_CONFIGURED_FOR_RELEASE` reflects whether real ones were found) until the user supplies real ad unit IDs via `admob.properties`. See `RELEASE_CHECKLIST.md` §2.
+- **Final versionCode**: still `2`/`"2.0"`, unchanged — pending confirmation against Play Console per user instruction, not incrementing blindly. See `RELEASE_CHECKLIST.md` §3.
+- **Rewarded ads**: removed rather than fixed (see phase 3 above) — reintroduce only with a real, designed, tested opt-in reward if wanted.
+- **`io.github.ShawnLin013:number-picker`**: unmaintained since 2021 (confirmed via the toolchain research pass), still in use for the squares-per-row picker in Settings. Not replaced — no drop-in replacement evaluated, out of scope for this pass, but worth flagging as an ongoing dependency risk.
 
-## Next steps
+## Next steps for a future session
 
-- Await background research: (a) latest mutually-compatible stable toolchain/dependency versions, (b) survey of remaining ~25 source/resource files not yet read directly (settings/start/score screens, notification permission handling, listeners, full color/dimens resources, existing test contents).
-- Apply build.gradle modernization once versions are confirmed.
-- Implement gameplay/ads/persistence/design phases with commits per logical unit, running build+tests after each.
+- Get a real emulator or physical device connected and work through `RELEASE_CHECKLIST.md` §6 (manual QA) - this is the single biggest gap left. Everything in this pass was verified via build/lint/unit-test only.
+- Supply production AdMob IDs and a real release keystore, then do a full release-build dry run.
+- Decide on the git-history signing-credential exposure (rotate vs. scrub vs. accept the risk).
+- If desired: replace the unmaintained number-picker dependency, and design a real opt-in rewarded-ad benefit rather than leaving rewarded ads removed.
