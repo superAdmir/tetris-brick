@@ -27,38 +27,30 @@ import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.tb.tetrisbrick.game.R;
 import com.tb.tetrisbrick.game.Values;
 import com.tb.tetrisbrick.game.data.SharedPreferencesManager;
+import com.tb.tetrisbrick.game.databinding.ActivitySettingsBinding;
 import com.tb.tetrisbrick.game.ui.score.ScoreActivity;
 import com.tb.tetrisbrick.game.utils.Utils;
 import com.shawnlin.numberpicker.NumberPicker;
 
+import java.util.Arrays;
 import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 
 import org.jetbrains.annotations.NotNull;
 
-import butterknife.BindView;
-import butterknife.BindViews;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-
 public class SettingsActivity extends AppCompatActivity implements SettingsView {
 
-    @BindViews({R.id.tvVeryFast, R.id.tvFast, R.id.tvDefault, R.id.tvSlow, R.id.tvVerySlow})
-    List<TextView> speedItems;
+    private ActivitySettingsBinding binding;
 
-    @BindView(R.id.clColorPicker)
-    ConstraintLayout colorPicker;
+    private List<TextView> speedItems;
 
-    @BindView(R.id.squaresCountNumberPicker)
-    NumberPicker squaresNumberPicker;
+    private NumberPicker squaresNumberPicker;
 
-    @BindView(R.id.sEnableHints)
-    Switch enableHintsSwitch;
+    private Switch enableHintsSwitch;
 
     private SettingsPresenter settingsPresenter;
 
@@ -70,11 +62,30 @@ public class SettingsActivity extends AppCompatActivity implements SettingsView 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
-        ButterKnife.bind(this);
+        binding = ActivitySettingsBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        speedItems = Arrays.asList(findViewById(R.id.tvVeryFast), findViewById(R.id.tvFast),
+                findViewById(R.id.tvDefault), findViewById(R.id.tvSlow), findViewById(R.id.tvVerySlow));
+        squaresNumberPicker = binding.squaresCountNumberPicker;
+        enableHintsSwitch = findViewById(R.id.sEnableHints);
         settingsPresenter = new SettingsPresenter(this,
                 new SharedPreferencesManager(getApplicationContext()));
         squaresNumberPicker.setOnValueChangedListener((picker, oldVal, newVal) -> settingsPresenter.setSquareCountInRow(newVal));
+
+        findViewById(R.id.flMoreApps).setOnClickListener(v -> showMoreApps());
+        enableHintsSwitch.setOnClickListener(v -> enableHints());
+        findViewById(R.id.flRate).setOnClickListener(v -> rateApp());
+        findViewById(R.id.vLFigureColor).setOnClickListener(v -> chooseColorFirst());
+        findViewById(R.id.vSquareFigureColor).setOnClickListener(v -> chooseColorSecond());
+        findViewById(R.id.vLongFigureColor).setOnClickListener(v -> chooseColorThird());
+        findViewById(R.id.vZFigureColor).setOnClickListener(v -> chooseColorFourth());
+        findViewById(R.id.vTFigureColor).setOnClickListener(v -> chooseColorFifth());
+        findViewById(R.id.vJFigureColor).setOnClickListener(v -> chooseColorSixth());
+        findViewById(R.id.tvVerySlow).setOnClickListener(v -> chooseVerySlowSpeed());
+        findViewById(R.id.tvSlow).setOnClickListener(v -> chooseSlowSpeed());
+        findViewById(R.id.tvDefault).setOnClickListener(v -> chooseDefaultSpeed());
+        findViewById(R.id.tvFast).setOnClickListener(v -> chooseFastSpeed());
+        findViewById(R.id.tvVeryFast).setOnClickListener(v -> chooseVeryFastSpeed());
 
         //Initialize the rewarded ads
         MobileAds.initialize(this, new OnInitializationCompleteListener() {
@@ -84,7 +95,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsView 
         });
         //Load the rewarded ads
         //Load the banner ads
-        mAdView = findViewById(R.id.adView);
+        mAdView = binding.adView;
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
         loadRewardedAd();
@@ -216,7 +227,6 @@ public class SettingsActivity extends AppCompatActivity implements SettingsView 
         if (squaresNumberPicker != null) squaresNumberPicker.setValue(squaresCountInRow);
     }
 
-    @OnClick(R.id.flMoreApps)
     void showMoreApps() {
         try {
             startActivity(Utils.showMoreApps());
@@ -226,13 +236,11 @@ public class SettingsActivity extends AppCompatActivity implements SettingsView 
     }
 
 
-    @OnClick(R.id.sEnableHints)
     void enableHints() {
         settingsPresenter.getEvent(R.id.sEnableHints);
     }
 
 
-    @OnClick(R.id.flRate)
     void rateApp() {
         try {
             startActivity(Utils.openMarket(this));
@@ -241,57 +249,46 @@ public class SettingsActivity extends AppCompatActivity implements SettingsView 
         }
     }
 
-    @OnClick(R.id.vLFigureColor)
     void chooseColorFirst() {
         settingsPresenter.getEvent(R.id.vLFigureColor);
     }
 
-    @OnClick(R.id.vSquareFigureColor)
     void chooseColorSecond() {
         settingsPresenter.getEvent(R.id.vSquareFigureColor);
     }
 
-    @OnClick(R.id.vLongFigureColor)
     void chooseColorThird() {
         settingsPresenter.getEvent(R.id.vLongFigureColor);
     }
 
-    @OnClick(R.id.vZFigureColor)
     void chooseColorFourth() {
         settingsPresenter.getEvent(R.id.vZFigureColor);
     }
 
-    @OnClick(R.id.vTFigureColor)
     void chooseColorFifth() {
         settingsPresenter.getEvent(R.id.vTFigureColor);
     }
 
-    @OnClick(R.id.vJFigureColor)
     void chooseColorSixth() {
         settingsPresenter.getEvent(R.id.vJFigureColor);
     }
 
-    @OnClick(R.id.tvVerySlow)
     void chooseVerySlowSpeed() {
         settingsPresenter.getEvent(R.id.tvVerySlow);
     }
 
-    @OnClick(R.id.tvSlow)
     void chooseSlowSpeed() {
         settingsPresenter.getEvent(R.id.tvSlow);
     }
 
-    @OnClick(R.id.tvDefault)
     void chooseDefaultSpeed() {
         settingsPresenter.getEvent(R.id.tvDefault);
     }
 
-    @OnClick(R.id.tvFast)
     void chooseFastSpeed() {
         settingsPresenter.getEvent(R.id.tvFast);
     }
 
-    @OnClick(R.id.tvVeryFast)
     void chooseVeryFastSpeed() {
         settingsPresenter.getEvent(R.id.tvVeryFast);
     }

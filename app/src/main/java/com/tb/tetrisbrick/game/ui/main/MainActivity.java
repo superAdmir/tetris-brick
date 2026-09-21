@@ -20,39 +20,16 @@ import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.tb.tetrisbrick.game.R;
 import com.tb.tetrisbrick.game.Values;
+import com.tb.tetrisbrick.game.databinding.ActivityMainBinding;
 import com.tb.tetrisbrick.game.ui.main.listeners.OnTimerStateChangedListener;
-import com.tb.tetrisbrick.game.ui.main.views.PlayingAreaView;
-import com.tb.tetrisbrick.game.ui.main.views.PreviewAreaView;
-import com.tb.tetrisbrick.game.ui.main.views.ScoreView;
-import com.tb.tetrisbrick.game.ui.settings.SettingsActivity;
 import com.tb.tetrisbrick.game.utils.DebouncedOnClickListener;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-
 public class MainActivity extends AppCompatActivity implements OnTimerStateChangedListener {
 
-    @BindView(R.id.playingArea)
-    PlayingAreaView playingAreaView;
-
-    @BindView(R.id.tvScore)
-    ScoreView scoreView;
-
-    @BindView(R.id.tvNextFigure)
-    PreviewAreaView previewAreaView;
-
-    @BindView(R.id.ivPausePlay)
-    ImageView playPauseImage;
-
-    @BindView(R.id.ivRotate)
-    ImageView rotateImage;
-
-    @BindView(R.id.ivMoveDown)
-    ImageView moveDownImage;
+    private ActivityMainBinding binding;
 
     private AdView mAdView;
 
@@ -62,19 +39,20 @@ public class MainActivity extends AppCompatActivity implements OnTimerStateChang
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        playingAreaView.setDependencies(scoreView, previewAreaView, this);
-        playingAreaView.cleanup();
-        playingAreaView.createFigureWithDelay();
-        ImageView rotate = findViewById(R.id.ivRotate);
-        rotate.setOnClickListener(new DebouncedOnClickListener(Values.DEBOUNCE_DELAY_IN_MILLIS) {
+        binding.playingArea.setDependencies(binding.tvScore, binding.tvNextFigure, this);
+        binding.playingArea.cleanup();
+        binding.playingArea.createFigureWithDelay();
+        binding.ivRotate.setOnClickListener(new DebouncedOnClickListener(Values.DEBOUNCE_DELAY_IN_MILLIS) {
             @Override
             public void onDebouncedClick(View v) {
-                playingAreaView.rotate();
+                binding.playingArea.rotate();
             }
         });
+        binding.ivMoveDown.setOnClickListener(v -> moveDown());
+        binding.ivPausePlay.setOnClickListener(v -> pausePlay());
 
         //Initialize the rewarded ads
         MobileAds.initialize(this, new OnInitializationCompleteListener() {
@@ -84,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements OnTimerStateChang
         });
         //Load the rewarded ads
         //Load the banner ads
-        mAdView = findViewById(R.id.adView);
+        mAdView = binding.adView;
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
         loadRewardedAd();
@@ -147,48 +125,46 @@ public class MainActivity extends AppCompatActivity implements OnTimerStateChang
     @Override
     protected void onResume() {
         super.onResume();
-        if (playingAreaView.isTimerRunning()) {
-            playingAreaView.startTimer();
+        if (binding.playingArea.isTimerRunning()) {
+            binding.playingArea.startTimer();
             setControlsEnabled(true);
         }
     }
 
     @Override
     protected void onStop() {
-        playingAreaView.cancelTimer();
+        binding.playingArea.cancelTimer();
         super.onStop();
     }
 
     @Override
     protected void onDestroy() {
-        playingAreaView.cleanup();
+        binding.playingArea.cleanup();
         super.onDestroy();
     }
 
     private void setControlsEnabled(boolean isRunning) {
-        rotateImage.setEnabled(isRunning);
-        moveDownImage.setEnabled(isRunning);
+        binding.ivRotate.setEnabled(isRunning);
+        binding.ivMoveDown.setEnabled(isRunning);
     }
 
-    @OnClick(R.id.ivMoveDown)
     void moveDown() {
-        playingAreaView.fastMoveDown();
+        binding.playingArea.fastMoveDown();
     }
 
-    @OnClick(R.id.ivPausePlay)
     void pausePlay() {
-        playingAreaView.handleTimerState();
+        binding.playingArea.handleTimerState();
     }
 
     @Override
     public void isTimerRunning(boolean isRunning) {
-        playPauseImage.setImageResource(isRunning ? R.drawable.ic_pause : R.drawable.ic_resume);
+        binding.ivPausePlay.setImageResource(isRunning ? R.drawable.ic_pause : R.drawable.ic_resume);
         setControlsEnabled(isRunning);
     }
 
     @Override
     public void disableAllControls() {
-        playPauseImage.setEnabled(false);
+        binding.ivPausePlay.setEnabled(false);
         setControlsEnabled(false);
     }
     @Override

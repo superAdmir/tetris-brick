@@ -34,30 +34,20 @@ public class Utils {
     }
 
     public static int getViewIdByColor(int color) {
-        int id = 0;
-        switch (color) {
-            case R.color.lFigure:
-                id = R.id.vLFigureColor;
-                break;
-            case R.color.squareFigure:
-                id = R.id.vSquareFigureColor;
-                break;
-            case R.color.longFigure:
-                id = R.id.vLongFigureColor;
-                break;
-            case R.color.zFigure:
-                id = R.id.vZFigureColor;
-                break;
-            case R.color.tFigure:
-                id = R.id.vTFigureColor;
-                break;
-            case R.color.jFigure:
-                id = R.id.vJFigureColor;
-                break;
-            default:
-                break;
+        if (color == R.color.lFigure) {
+            return R.id.vLFigureColor;
+        } else if (color == R.color.squareFigure) {
+            return R.id.vSquareFigureColor;
+        } else if (color == R.color.longFigure) {
+            return R.id.vLongFigureColor;
+        } else if (color == R.color.zFigure) {
+            return R.id.vZFigureColor;
+        } else if (color == R.color.tFigure) {
+            return R.id.vTFigureColor;
+        } else if (color == R.color.jFigure) {
+            return R.id.vJFigureColor;
         }
-        return id;
+        return 0;
     }
 
     public static FigureSpeed getFiguresSpeedByMillis(long speedMillis) {

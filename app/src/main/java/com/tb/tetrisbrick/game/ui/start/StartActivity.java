@@ -3,33 +3,21 @@ package com.tb.tetrisbrick.game.ui.start;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
-import android.widget.TextView;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
-import com.tb.tetrisbrick.game.R;
+import com.tb.tetrisbrick.game.databinding.ActivityStartBinding;
 import com.tb.tetrisbrick.game.ui.main.MainActivity;
 import com.tb.tetrisbrick.game.ui.score.ScoreActivity;
 import com.tb.tetrisbrick.game.ui.settings.SettingsActivity;
 import com.tb.tetrisbrick.game.utils.AnimationUtil;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-
 public class StartActivity extends AppCompatActivity {
 
-    @BindView(R.id.tvGameTitle)
-    TextView gameTitle;
-
-    @BindView(R.id.bStartGame)
-    TextView startGameButton;
-
-    @BindView(R.id.bOpenScores)
-    TextView openScoresButton;
+    private ActivityStartBinding binding;
 
     private AdView mAdView;
 
@@ -37,10 +25,14 @@ public class StartActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_start);
-        ButterKnife.bind(this);
+        binding = ActivityStartBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         setTitleAnimation();
         setButtonAnimation();
+
+        binding.bStartGame.setOnClickListener(v -> startGame());
+        binding.bOpenScores.setOnClickListener(v -> openScores());
+        binding.bOpenSettings.setOnClickListener(v -> openSettings());
 
         //Initialize the banner ads
         MobileAds.initialize(this, new OnInitializationCompleteListener() {
@@ -49,7 +41,7 @@ public class StartActivity extends AppCompatActivity {
             }
         });
         //Load the banner ads
-        mAdView = findViewById(R.id.adView);
+        mAdView = binding.adView;
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
     }
@@ -61,25 +53,22 @@ public class StartActivity extends AppCompatActivity {
     }
 
     private void setTitleAnimation() {
-        gameTitle.startAnimation(AnimationUtil.getZoomIn(this));
+        binding.tvGameTitle.startAnimation(AnimationUtil.getZoomIn(this));
     }
 
     private void setButtonAnimation() {
-        startGameButton.startAnimation(AnimationUtil.getSlideInLeft(this));
-        openScoresButton.startAnimation(AnimationUtil.getSlideInRight(this));
+        binding.bStartGame.startAnimation(AnimationUtil.getSlideInLeft(this));
+        binding.bOpenScores.startAnimation(AnimationUtil.getSlideInRight(this));
     }
 
-    @OnClick(R.id.bStartGame)
     void startGame() {
         this.startActivity(new Intent(this, MainActivity.class));
     }
 
-    @OnClick(R.id.bOpenScores)
     void openScores() {
         this.startActivity(new Intent(this, ScoreActivity.class));
     }
 
-    @OnClick(R.id.bOpenSettings)
     void openSettings() {
         this.startActivity(new Intent(this, SettingsActivity.class));
     }

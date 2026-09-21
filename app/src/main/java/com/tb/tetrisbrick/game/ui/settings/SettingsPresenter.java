@@ -37,46 +37,31 @@ class SettingsPresenter {
     }
 
     void getEvent(int id) {
-        switch (id) {
-            case R.id.vLFigureColor:
-                manageColorPicking(R.color.lFigure, id);
-                break;
-            case R.id.vSquareFigureColor:
-                manageColorPicking(R.color.squareFigure, id);
-                break;
-            case R.id.vLongFigureColor:
-                manageColorPicking(R.color.longFigure, id);
-                break;
-            case R.id.vZFigureColor:
-                manageColorPicking(R.color.zFigure, id);
-                break;
-            case R.id.vTFigureColor:
-                manageColorPicking(R.color.tFigure, id);
-                break;
-            case R.id.vJFigureColor:
-                manageColorPicking(R.color.jFigure, id);
-                break;
-            case R.id.sEnableHints:
-                boolean isEnabled = sharedPreferencesManager.isHintsEnabled();
-                sharedPreferencesManager.setHintsEnabled(!isEnabled);
-                break;
-            case R.id.tvVeryFast:
-                manageSpeedPicking(VERY_FAST.getFigureSpeedInMillis(), id);
-                break;
-            case R.id.tvFast:
-                manageSpeedPicking(FAST.getFigureSpeedInMillis(), id);
-                break;
-            case R.id.tvDefault:
-                manageSpeedPicking(DEFAULT.getFigureSpeedInMillis(), id);
-                break;
-            case R.id.tvSlow:
-                manageSpeedPicking(SLOW.getFigureSpeedInMillis(), id);
-                break;
-            case R.id.tvVerySlow:
-                manageSpeedPicking(VERY_SLOW.getFigureSpeedInMillis(), id);
-                break;
-            default:
-                break;
+        if (id == R.id.vLFigureColor) {
+            manageColorPicking(R.color.lFigure, id);
+        } else if (id == R.id.vSquareFigureColor) {
+            manageColorPicking(R.color.squareFigure, id);
+        } else if (id == R.id.vLongFigureColor) {
+            manageColorPicking(R.color.longFigure, id);
+        } else if (id == R.id.vZFigureColor) {
+            manageColorPicking(R.color.zFigure, id);
+        } else if (id == R.id.vTFigureColor) {
+            manageColorPicking(R.color.tFigure, id);
+        } else if (id == R.id.vJFigureColor) {
+            manageColorPicking(R.color.jFigure, id);
+        } else if (id == R.id.sEnableHints) {
+            boolean isEnabled = sharedPreferencesManager.isHintsEnabled();
+            sharedPreferencesManager.setHintsEnabled(!isEnabled);
+        } else if (id == R.id.tvVeryFast) {
+            manageSpeedPicking(VERY_FAST.getFigureSpeedInMillis(), id);
+        } else if (id == R.id.tvFast) {
+            manageSpeedPicking(FAST.getFigureSpeedInMillis(), id);
+        } else if (id == R.id.tvDefault) {
+            manageSpeedPicking(DEFAULT.getFigureSpeedInMillis(), id);
+        } else if (id == R.id.tvSlow) {
+            manageSpeedPicking(SLOW.getFigureSpeedInMillis(), id);
+        } else if (id == R.id.tvVerySlow) {
+            manageSpeedPicking(VERY_SLOW.getFigureSpeedInMillis(), id);
         }
     }
 

@@ -4,9 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,27 +20,14 @@ import com.google.android.gms.ads.initialization.OnInitializationCompleteListene
 import com.google.android.gms.ads.rewarded.RewardItem;
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
-import com.tb.tetrisbrick.game.R;
 import com.tb.tetrisbrick.game.data.SharedPreferencesManager;
+import com.tb.tetrisbrick.game.databinding.ActivityScoreBinding;
 import com.tb.tetrisbrick.game.ui.settings.SettingsActivity;
 import com.tb.tetrisbrick.game.utils.AnimationUtil;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
+public class ScoreActivity extends AppCompatActivity {
 
-public class ScoreActivity<privateButton> extends AppCompatActivity {
-
-    @BindView(R.id.tvFirstScore)
-    TextView firstScore;
-
-    @BindView(R.id.tvSecondScore)
-    TextView secondScore;
-
-    @BindView(R.id.tvThirdScore)
-    TextView thirdScore;
-
-    @BindView(R.id.llScores)
-    LinearLayout scoresLayout;
+    private ActivityScoreBinding binding;
 
     private AdView mAdView;
 
@@ -55,13 +39,13 @@ public class ScoreActivity<privateButton> extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_score);
+        binding = ActivityScoreBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         sharedPreferencesManager = new SharedPreferencesManager(getApplicationContext());
-        ButterKnife.bind(this);
-        scoresLayout.startAnimation(AnimationUtil.getZoomIn(this));
-        firstScore.setText(sharedPreferencesManager.getFirstValue());
-        secondScore.setText(sharedPreferencesManager.getSecondValue());
-        thirdScore.setText(sharedPreferencesManager.getThirdValue());
+        binding.llScores.startAnimation(AnimationUtil.getZoomIn(this));
+        binding.tvFirstScore.setText(sharedPreferencesManager.getFirstValue());
+        binding.tvSecondScore.setText(sharedPreferencesManager.getSecondValue());
+        binding.tvThirdScore.setText(sharedPreferencesManager.getThirdValue());
 
         //Initialize the banner ads
         MobileAds.initialize(this, new OnInitializationCompleteListener() {
@@ -70,7 +54,7 @@ public class ScoreActivity<privateButton> extends AppCompatActivity {
             }
         });
         //Load the banner ads
-        mAdView = findViewById(R.id.adView);
+        mAdView = binding.adView;
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
         loadRewardedAd();
