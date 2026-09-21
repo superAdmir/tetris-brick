@@ -69,6 +69,11 @@ android {
         buildConfig true
         resValues true
     }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
     namespace 'com.tb.tetrisbrick.game'
 }
 
@@ -87,6 +92,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     testImplementation 'org.mockito:mockito-core:5.23.0'
+    testImplementation 'org.robolectric:robolectric:4.16'
     androidTestImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     implementation 'com.google.android.gms:play-services-ads:25.5.0'
     implementation 'com.google.android.ump:user-messaging-platform:4.0.0'

@@ -32,7 +32,7 @@ public class NotificationUtil {
     private void initIntent(Context context) {
         Intent intent = new Intent(context, ScoreActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_MUTABLE);
+        pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
     }
 
     private Notification getNotificationBuilder() {

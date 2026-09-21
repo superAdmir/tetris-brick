@@ -66,13 +66,40 @@ public class NetManager {
     }
 
     public boolean canRotate(Figure rotatedFigure) {
-        boolean result = false;
-        if (rotatedFigure.pointInNet.x + rotatedFigure.getWidthInSquare() <= horizontalSquaresCount
-                && rotatedFigure.pointInNet.y + rotatedFigure.getHeightInSquare() < verticalSquaresCount
-                && isNetFreeToMoveDown()) {
-            result = true;
+        if (rotatedFigure.pointInNet.x < 0
+                || rotatedFigure.pointInNet.x + rotatedFigure.getWidthInSquare() > horizontalSquaresCount
+                || rotatedFigure.pointInNet.y < 0
+                || rotatedFigure.pointInNet.y + rotatedFigure.getHeightInSquare() > net.length) {
+            return false;
         }
-        return result;
+        // The current figure's own cells are still marked true in `net`. Temporarily
+        // erase them so the destination check below only sees already-settled blocks,
+        // then restore them - actually committing a rotation is initRotatedFigure()'s job.
+        eraseFigureFromNet();
+        boolean destinationFree = isDestinationFree(rotatedFigure);
+        copyMaskToNet();
+        return destinationFree;
+    }
+
+    private void eraseFigureFromNet() {
+        for (int i = 0; i < figure.figureMask.length; i++) {
+            int startHorizontalPos = getStartHorizontalPosition(figure.figureMask[i]);
+            int endPosition = getEndHorizontalPosition(figure.figureMask[i]);
+            for (int j = startHorizontalPos; j < startHorizontalPos + endPosition; j++) {
+                net[figure.pointInNet.y + i][figure.pointInNet.x + j] = false;
+            }
+        }
+    }
+
+    private boolean isDestinationFree(Figure candidate) {
+        for (int i = 0; i < candidate.figureMask.length; i++) {
+            for (int j = 0; j < candidate.figureMask[i].length; j++) {
+                if (candidate.figureMask[i][j] && net[candidate.pointInNet.y + i][candidate.pointInNet.x + j]) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public void resetMaskBeforeMoveWithFalse() {

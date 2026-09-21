@@ -1,8 +1,15 @@
 package com.tb.tetrisbrick.game.ui.start;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.tb.tetrisbrick.game.ads.AdsManager;
 import com.tb.tetrisbrick.game.databinding.ActivityStartBinding;
@@ -14,6 +21,10 @@ import com.tb.tetrisbrick.game.utils.AnimationUtil;
 public class StartActivity extends AppCompatActivity {
 
     private ActivityStartBinding binding;
+
+    private final ActivityResultLauncher<String> notificationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +39,15 @@ public class StartActivity extends AppCompatActivity {
         binding.bOpenSettings.setOnClickListener(v -> openSettings());
 
         AdsManager.requestConsentThenLoadBanner(this, binding.adView);
+        requestNotificationPermissionIfNeeded();
+    }
+
+    private void requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+        }
     }
 
     @Override

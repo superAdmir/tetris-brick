@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.Toast;
@@ -54,6 +55,9 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
     private Paint paint;
 
     private CountDownTimer timer;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private Runnable pendingCreateFigure;
+    private Runnable pendingGameOverFinish;
 
     private Context context;
     private OnTimerStateChangedListener onTimerStateChangedListener;
@@ -91,8 +95,6 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
         paint.setStrokeWidth(LINE_WIDTH);
         drawHorizontalLines(canvas);
         drawVerticalLines(canvas);
-        if (currentFigure != null && currentFigure.getState() == FigureState.MOVING && isTimerRunning)
-            startMoveDown();
         if (netManager != null && netManager.getStoppedFiguresPaths() != null) {
             for (Path squarePath : netManager.getStoppedFiguresPaths()) {
                 paint.setColor(getResources().getColor(sharedPreferencesManager.getFiguresColor()));
@@ -115,6 +117,8 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
     public void cleanup() {
         sharedPreferencesManager.putNewScore(scoreView.getScore());
         cancelTimer();
+        if (pendingCreateFigure != null) handler.removeCallbacks(pendingCreateFigure);
+        if (pendingGameOverFinish != null) handler.removeCallbacks(pendingGameOverFinish);
         scoreView.setStartValue();
         netManager = null;
         currentFigure = null;
@@ -177,28 +181,32 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
         }
     }
 
-    private void startMoveDown() {
+    // Drives gravity on its own schedule, independent of rendering: each successful
+    // moveDown() reschedules the next tick itself, and nothing outside this method
+    // (moving/rotating/redrawing) resets it.
+    private void advanceOrStopFalling() {
+        if (currentFigure == null || currentFigure.getState() != FigureState.MOVING) return;
         if (BuildConfig.DEBUG) netManager.printNet();
+        if (!netManager.isNetFreeToMoveDown()) {
+            netManager.changeFigureState();
+            return;
+        }
+        if (!isTimerRunning) return;
         cancelTimer();
         timer = new CountDownTimer(sharedPreferencesManager.getFiguresSpeed(), COUNT_DOWN_INTERVAL) {
             public void onTick(long millisUntilFinished) {
-                isTimerRunning = true;
             }
 
             public void onFinish() {
-                if (currentFigure.getState() == FigureState.MOVING) {
+                if (currentFigure != null && currentFigure.getState() == FigureState.MOVING) {
                     currentFigure.moveDown();
                     netManager.moveDownInNet();
                     invalidate();
+                    advanceOrStopFalling();
                 }
             }
         };
-        if (!netManager.isNetFreeToMoveDown()) {
-            netManager.changeFigureState();
-            cancelTimer();
-        } else {
-            startTimer();
-        }
+        startTimer();
     }
 
     public void fastMoveDown() {
@@ -225,6 +233,7 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
                 netManager.moveRightInNet();
             }
             invalidate();
+            advanceOrStopFalling();
         }
     }
 
@@ -237,10 +246,10 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
                 netManager.moveLeftInNet();
             }
             invalidate();
+            advanceOrStopFalling();
         }
     }
 
-    //todo think about the restrictions
     public void rotate() {
         if (currentFigure != null && currentFigure.getState() == FigureState.MOVING && currentFigure.getRotatedFigure() != null && isTimerRunning) {
             Figure figure = FigureFactory.getFigure(currentFigure.getRotatedFigure(), squareWidth, scale, context, currentFigure.pointOnScreen);
@@ -267,6 +276,7 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
                 netManager.initFigure(currentFigure);
                 if (BuildConfig.DEBUG) netManager.printNet();
                 invalidate();
+                advanceOrStopFalling();
             }
         }
     }
@@ -292,10 +302,11 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
     }
 
     public void createFigureWithDelay() {
-        new Handler().postDelayed(() -> {
+        pendingCreateFigure = () -> {
             previewAreaView.drawNextFigure(FigureFactory.getFigure(figureCreator.getNextFigureType(), (squareWidth * squaresInRowCount) / Values.SQUARES_COUNT_IN_ROW, context));
             createFigure();
-        }, Values.DELAY_IN_MILLIS);
+        };
+        handler.postDelayed(pendingCreateFigure, Values.DELAY_IN_MILLIS);
     }
 
     @Override
@@ -318,8 +329,8 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
         cancelTimer();
         onTimerStateChangedListener.disableAllControls();
         Toast.makeText(context, context.getString(R.string.game_over_text), Toast.LENGTH_LONG).show();
-        new Handler().postDelayed(() -> ((Activity) context).finish(), GAME_OVER_DELAY_IN_MILLIS);
-
+        pendingGameOverFinish = () -> ((Activity) context).finish();
+        handler.postDelayed(pendingGameOverFinish, GAME_OVER_DELAY_IN_MILLIS);
     }
 
     @Override
