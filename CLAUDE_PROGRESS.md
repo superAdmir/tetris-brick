@@ -36,13 +36,40 @@ All prior audit points independently reverified true as of this session:
 ## Phase plan
 
 1. **Repo hygiene** — DONE (commit `1e46d15`): add `.gitignore`, untrack `.gradle/`, `local.properties`, `keystore.properties` (local copies preserved). Signing password remains in earlier history — flagged for user decision (rotate / private repo / history scrub), not acted on automatically.
-2. **Build & dependency modernization** — in progress. AGP/Gradle/Kotlin/AndroidX/Ads SDK to latest mutually-compatible stable versions (research via background agent, no alpha/beta/RC). Remove JCenter, ButterKnife → View Binding, drop `kotlin-android-extensions`, remove `testImplementation project(':app')`, decide on minSdk (currently 21 — document any change).
+2. **Build & dependency modernization** — DONE (commit `28bc094`). See "Toolchain version table" below. `./gradlew :app:assembleDebug` and `:app:testDebugUnitTest` both green on this commit.
 3. **Ads compliance** — split debug/release ad unit IDs, remove sample IDs from main source, remove auto rewarded-ad-on-back, correct reward grant (earned-reward callback only, dedup), banner placement outside gameplay/controls, UMP consent flow, never block gameplay on ad failure, proper lifecycle cleanup (`AdView.pause/resume/destroy`).
 4. **Gameplay reliability** — decouple the fall-timer/game loop from `onDraw()`, add real destination-cell rotation collision check, cancel all `Handler` callbacks in teardown, responsive (non-hardcoded-720dp) layout for the playing area.
 5. **State persistence** — save/restore active game (board, current + next figure, score, settings) across process death, versioned + validated; preserve existing high scores; safe color-preference migration off resource IDs with fallback.
 6. **Design refresh** — dark navy/charcoal + cyan/violet accent theme across home/game/pause/game-over/scores/settings, edge-to-edge + system-bar insets, responsive layout, accessible labels, touch targets, optional haptics.
 7. **Tests** — unit tests for rotation/collision/line-clear/scoring, save/restore, preference migration; instrumentation smoke test; lint.
 8. **Docs** — this file, README rewrite (drop "No ads" claim, document real feature set), release checklist (production AdMob IDs, signing, versionCode, Data safety, internal testing, manual QA).
+
+## Toolchain version table (as of 2026-09-21, all latest stable / no alpha-beta-RC)
+
+| Component | Before | After |
+|---|---|---|
+| AGP | 8.6.1 | 9.4.0 |
+| Gradle | 8.7 | 9.7.1 |
+| Kotlin | 1.7.21 | 2.4.20 (kotlin-android plugin removed; AGP 9 has built-in Kotlin support) |
+| compileSdk | 34 | 37 (required by androidx.core 1.19.x) |
+| targetSdk | 34 | 36 (Play's Aug 2026 target-API deadline; API 37 not yet mandated) |
+| minSdk | 21 | **24** — play-services-ads 25.5.0 requires it; see decision note below |
+| androidx.appcompat | 1.2.0-beta01 | 1.8.0 |
+| androidx.constraintlayout | 2.0.0-beta4 | 2.2.2 |
+| androidx.core-ktx | 1.2.0 | 1.19.0 |
+| androidx.work(-ktx) | 2.7.1 | 2.11.2 |
+| androidx.lifecycle-process | (none) | 2.11.0 (added, for later process-lifecycle-aware ad cleanup) |
+| com.google.android.gms:play-services-ads | 22.0.0 | 25.5.0 |
+| com.google.android.ump:user-messaging-platform | (none) | 4.0.0 (added, for consent flow) |
+| junit | 4.13-beta-3 | 4.13.2 |
+| mockito-core | 2.25.0 | 5.23.0 |
+| androidx.test.espresso:espresso-core | 3.3.0-alpha01 | 3.7.0 |
+| androidx.test.ext:junit | (none) | 1.3.0 (added) |
+| com.jakewharton:butterknife | 10.1.0 | removed (View Binding) |
+| io.github.ShawnLin013:number-picker | 2.4.13 | 2.4.13 (unchanged — unmaintained since 2021, flagged as a risk, no alternative substituted since replacing it is out of scope) |
+| org.jetbrains:annotations | 15.0 | removed (unused) |
+
+**minSdk 21 → 24 decision**: `play-services-ads:25.5.0`'s own manifest requires minSdk 24; there is no current, policy-compliant Ads SDK release that still supports API 21-23. Devices on Android 5.0-6.0 (API 21-23) are a vanishing fraction of the active install base by late 2026. Proceeded without asking since the alternative (shipping a years-stale, non-compliant Ads SDK, or dropping ads against explicit user authorization) is clearly worse — flagging here per the instruction to document minSdk impact rather than change it silently.
 
 ## Files changed so far
 
