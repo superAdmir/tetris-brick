@@ -1,0 +1,8 @@
+# Copy this file to admob.properties (gitignored, never commit it) and fill in
+# your real production AdMob IDs from the AdMob console before a monetized
+# Play release. Until this file exists, release builds fall back to Google's
+# official test IDs (safe to ship, but earn no revenue) - see app/build.gradle
+# and CLAUDE_PROGRESS.md.
+
+admobAppId=ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY
+bannerAdUnitId=ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY

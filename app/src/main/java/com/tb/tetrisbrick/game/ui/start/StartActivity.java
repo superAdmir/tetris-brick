@@ -4,11 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+import com.tb.tetrisbrick.game.ads.AdsManager;
 import com.tb.tetrisbrick.game.databinding.ActivityStartBinding;
 import com.tb.tetrisbrick.game.ui.main.MainActivity;
 import com.tb.tetrisbrick.game.ui.score.ScoreActivity;
@@ -18,9 +14,6 @@ import com.tb.tetrisbrick.game.utils.AnimationUtil;
 public class StartActivity extends AppCompatActivity {
 
     private ActivityStartBinding binding;
-
-    private AdView mAdView;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,22 +27,26 @@ public class StartActivity extends AppCompatActivity {
         binding.bOpenScores.setOnClickListener(v -> openScores());
         binding.bOpenSettings.setOnClickListener(v -> openSettings());
 
-        //Initialize the banner ads
-        MobileAds.initialize(this, new OnInitializationCompleteListener() {
-            @Override
-            public void onInitializationComplete(InitializationStatus initializationStatus) {
-            }
-        });
-        //Load the banner ads
-        mAdView = binding.adView;
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
+        AdsManager.requestConsentThenLoadBanner(this, binding.adView);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        binding.adView.resume();
         setTitleAnimation();
+    }
+
+    @Override
+    protected void onPause() {
+        binding.adView.pause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        binding.adView.destroy();
+        super.onDestroy();
     }
 
     private void setTitleAnimation() {

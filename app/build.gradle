@@ -8,6 +8,22 @@ if (hasSigningConfig) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+// Google's official sample/test AdMob IDs (https://developers.google.com/admob/android/test-ads).
+// Safe to ship: they never serve real ads or earn revenue. Debug builds always use these.
+// Release builds use these same IDs as a fallback UNLESS admob.properties (gitignored, never
+// committed) supplies real production IDs - see admob.properties.example.
+def testAdmobAppId = "ca-app-pub-3940256099942544~3347511713"
+def testBannerAdUnitId = "ca-app-pub-3940256099942544/6300978111"
+
+def admobPropertiesFile = rootProject.file("admob.properties")
+def admobProperties = new Properties()
+def hasProductionAdmobConfig = admobPropertiesFile.exists()
+if (hasProductionAdmobConfig) {
+    admobPropertiesFile.withInputStream { admobProperties.load(it) }
+}
+def releaseAdmobAppId = admobProperties.getProperty("admobAppId", testAdmobAppId)
+def releaseBannerAdUnitId = admobProperties.getProperty("bannerAdUnitId", testBannerAdUnitId)
+
 android {
     signingConfigs {
         if (hasSigningConfig) {
@@ -29,11 +45,19 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        debug {
+            resValue "string", "admob_app_id", testAdmobAppId
+            resValue "string", "banner_ad_unit_id", testBannerAdUnitId
+            buildConfigField "boolean", "ADS_CONFIGURED_FOR_RELEASE", "false"
+        }
         release {
             minifyEnabled true
             shrinkResources true
             if (hasSigningConfig) signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            resValue "string", "admob_app_id", releaseAdmobAppId
+            resValue "string", "banner_ad_unit_id", releaseBannerAdUnitId
+            buildConfigField "boolean", "ADS_CONFIGURED_FOR_RELEASE", hasProductionAdmobConfig.toString()
         }
     }
     compileOptions {
@@ -43,6 +67,7 @@ android {
     buildFeatures {
         viewBinding true
         buildConfig true
+        resValues true
     }
     namespace 'com.tb.tetrisbrick.game'
 }

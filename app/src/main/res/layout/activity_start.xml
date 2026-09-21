@@ -50,7 +50,7 @@
             android:layout_height="match_parent"
             android:layout_marginTop="680dp"
             ads:adSize="BANNER"
-            ads:adUnitId="ca-app-pub-3940256099942544/6300978111"
+            ads:adUnitId="@string/banner_ad_unit_id"
             tools:layout_editor_absoluteY="710dp" />
     </RelativeLayout>
 </LinearLayout>
