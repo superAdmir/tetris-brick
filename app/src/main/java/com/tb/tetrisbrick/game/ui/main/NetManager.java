@@ -241,21 +241,6 @@ public class NetManager {
         return result;
     }
 
-    private void levelDownNet(int level, int rowsCount) {
-        boolean[][] tmpNet = new boolean[verticalSquaresCount + EXTRA_ROWS][horizontalSquaresCount];
-        for (int i = 0; i < net.length; i++) {
-            System.arraycopy(net[i], 0, tmpNet[i], 0, net[i].length);
-        }
-        for (int i = 0; i <= net.length - level; i++) {
-            for (int j = 0; j < net[0].length; j++) {
-                net[i][j] = false;
-            }
-        }
-        for (int i = 0; i < net.length - level; i++) {
-            System.arraycopy(tmpNet[i], 0, net[i + rowsCount], 0, tmpNet[i].length);
-        }
-    }
-
     private boolean isHorizontalLineTrue(boolean[] booleans) {
         boolean result = false;
         int j = 0;
@@ -321,17 +306,23 @@ public class NetManager {
     }
 
     public void checkBottomLine() {
-        int skippedRows = 0;
-        int rowsCount = 0;
-        for (int i = verticalSquaresCount + EXTRA_ROWS - 1; i > 0; i--) {
+        // Compact from the bottom up: keep every non-full row (shifting it down to fill
+        // whatever was cleared beneath it), drop every full row. This handles any mix of
+        // full rows correctly, including rows that aren't adjacent to each other.
+        boolean[][] compacted = new boolean[net.length][horizontalSquaresCount];
+        int writeRow = net.length - 1;
+        int rowsCleared = 0;
+        for (int i = net.length - 1; i >= 0; i--) {
             if (isHorizontalLineTrue(net[i])) {
-                rowsCount++;
-                skippedRows = verticalSquaresCount + EXTRA_ROWS - i;
+                rowsCleared++;
+            } else {
+                System.arraycopy(net[i], 0, compacted[writeRow], 0, horizontalSquaresCount);
+                writeRow--;
             }
         }
-        if (skippedRows != 0) {
-            levelDownNet(skippedRows, rowsCount);
-            combo = rowsCount;
+        if (rowsCleared != 0) {
+            net = compacted;
+            combo = rowsCleared;
             onNetChangedListener.onBottomLineIsTrue();
         }
     }

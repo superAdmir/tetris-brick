@@ -89,6 +89,64 @@ class NetManagerTest {
         assertFalse(netManager.canRotate(squareAt(horizontalSquareCount - 1, 0)))
     }
 
+    @Suppress("UNCHECKED_CAST")
+    private fun netField(): Array<BooleanArray> {
+        val field = NetManager::class.java.getDeclaredField("net")
+        field.isAccessible = true
+        return field.get(netManager) as Array<BooleanArray>
+    }
+
+    private fun setNetField(board: Array<BooleanArray>) {
+        val field = NetManager::class.java.getDeclaredField("net")
+        field.isAccessible = true
+        field.set(netManager, board)
+    }
+
+    @Test
+    fun checkBottomLine_clearsTwoAdjacentFullRows() {
+        val rows = netManager.netRowCount
+        val cols = horizontalSquareCount
+        val board = Array(rows) { BooleanArray(cols) }
+        for (c in 0 until cols) {
+            board[rows - 1][c] = true
+            board[rows - 2][c] = true
+        }
+        setNetField(board)
+
+        netManager.checkBottomLine()
+
+        assertEquals(2, NetManager.combo)
+        assertTrue("no row should still be full after clearing", netField().none { row -> row.all { it } })
+    }
+
+    @Test
+    fun checkBottomLine_clearsNonContiguousFullRows() {
+        // Two full rows separated by non-full rows, with a marker cell above and one
+        // between them, so we can confirm both full rows are removed - not just the
+        // topmost one - and that the surviving rows are neither lost nor duplicated.
+        val rows = netManager.netRowCount
+        val cols = horizontalSquareCount
+        val board = Array(rows) { BooleanArray(cols) }
+        for (c in 0 until cols) {
+            board[10][c] = true
+            board[15][c] = true
+        }
+        board[5][0] = true  // marker above both full rows
+        board[12][0] = true // marker between the two full rows
+        setNetField(board)
+
+        netManager.checkBottomLine()
+
+        assertEquals("both separated full rows should count towards the clear", 2, NetManager.combo)
+        val result = netField()
+        assertTrue("no row should still be full after clearing", result.none { row -> row.all { it } })
+
+        val markerRows = result.indices.filter { result[it][0] }
+        assertEquals("both markers must survive - none lost, none duplicated", 2, markerRows.size)
+        assertTrue("the marker that started above the other must stay above it",
+            markerRows[0] < markerRows[1])
+    }
+
     @Test
     fun canRotate_doesNotMutateTheBoard() {
         netManager.initFigure(squareAt(5, 5))
