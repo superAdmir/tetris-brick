@@ -21,6 +21,7 @@ import com.tb.tetrisbrick.game.enums.FigureState;
 import com.tb.tetrisbrick.game.figures.Figure;
 import com.tb.tetrisbrick.game.figures.factory.FigureCreator;
 import com.tb.tetrisbrick.game.figures.factory.FigureFactory;
+import com.tb.tetrisbrick.game.utils.Utils;
 import com.tb.tetrisbrick.game.ui.main.NetManager;
 import com.tb.tetrisbrick.game.ui.main.listeners.OnNetChangedListener;
 import com.tb.tetrisbrick.game.ui.main.listeners.OnPlayingAreaTouch;
@@ -97,7 +98,7 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
         drawVerticalLines(canvas);
         if (netManager != null && netManager.getStoppedFiguresPaths() != null) {
             for (Path squarePath : netManager.getStoppedFiguresPaths()) {
-                paint.setColor(getResources().getColor(sharedPreferencesManager.getFiguresColor()));
+                paint.setColor(getResources().getColor(Utils.resolveColorResId(sharedPreferencesManager.getFiguresColorKey())));
                 canvas.drawPath(squarePath, paint);
             }
         }

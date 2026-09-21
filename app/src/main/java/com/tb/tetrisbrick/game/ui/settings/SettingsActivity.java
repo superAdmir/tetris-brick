@@ -93,8 +93,8 @@ public class SettingsActivity extends AppCompatActivity implements SettingsView 
     }
 
     @Override
-    public void markChosenColor(int oldColor, int newItemId) {
-        ImageView oldImageView = findViewById(Utils.getViewIdByColor(oldColor));
+    public void markChosenColor(String oldColorKey, int newItemId) {
+        ImageView oldImageView = findViewById(Utils.getViewIdByColorKey(oldColorKey));
         if (oldImageView != null) {
             oldImageView.setImageDrawable(null);
         }
