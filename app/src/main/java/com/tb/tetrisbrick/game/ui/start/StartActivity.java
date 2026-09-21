@@ -17,6 +17,7 @@ import com.tb.tetrisbrick.game.ui.main.MainActivity;
 import com.tb.tetrisbrick.game.ui.score.ScoreActivity;
 import com.tb.tetrisbrick.game.ui.settings.SettingsActivity;
 import com.tb.tetrisbrick.game.utils.AnimationUtil;
+import com.tb.tetrisbrick.game.utils.EdgeToEdgeUtils;
 
 public class StartActivity extends AppCompatActivity {
 
@@ -31,6 +32,7 @@ public class StartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityStartBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        EdgeToEdgeUtils.applySystemBarInsets(binding.getRoot());
         setTitleAnimation();
         setButtonAnimation();
 

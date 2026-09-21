@@ -1,25 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#C5E8B7</color>
-    <color name="colorPrimaryLight">#1A00B0FF</color>
-    <color name="colorPrimaryTransparent">#83D475</color>
-    <color name="colorPrimaryDark">#83D475</color>
-    <color name="colorAccent">#ABE098</color>
+    <!-- Dark navy/charcoal arcade theme -->
+    <color name="colorBackground">#0B1220</color>
+    <color name="colorSurface">#141B2E</color>
+    <color name="colorSurfaceAlt">#1C2540</color>
+    <color name="colorDivider">#263049</color>
 
-    <color name="colorGrey">#9DACAC</color>
+    <!-- Cyan/violet accents -->
+    <color name="colorPrimary">#22D3EE</color>
+    <color name="colorPrimaryDark">#0E7490</color>
+    <color name="colorPrimaryLight">#4022D3EE</color>
+    <color name="colorPrimaryTransparent">#4022D3EE</color>
+    <color name="colorAccent">#A78BFA</color>
 
-    <color name="lFigure">#eeffba</color>
-    <color name="jFigure">#5d8700</color>
-    <color name="longFigure">#beed53</color>
-    <color name="sFigure">#8FBC8B</color>
-    <color name="zFigure">#a5d721</color>
-    <color name="tFigure">#82b300</color>
-    <color name="squareFigure">#d6fa8c</color>
+    <!-- Text -->
+    <color name="colorOnBackground">#E7ECF3</color>
+    <color name="colorOnSurfaceMuted">#93A0B8</color>
+    <color name="colorOnAccent">#0B1220</color>
 
-    <color name="white">#ffffff</color>
+    <color name="colorGrey">#93A0B8</color>
+
+    <!-- Figure colors: a classic, distinct-per-piece palette, kept separate from the
+         cyan/violet UI accent colors above so pieces never get confused with chrome. -->
+    <color name="lFigure">#FB923C</color>
+    <color name="jFigure">#60A5FA</color>
+    <color name="longFigure">#22D3EE</color>
+    <color name="sFigure">#4ADE80</color>
+    <color name="zFigure">#F87171</color>
+    <color name="tFigure">#C084FC</color>
+    <color name="squareFigure">#FACC15</color>
+
+    <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
-    <color name="gradient">#83D475</color>
+    <color name="gradient">#1C2540</color>
 
     <color name="transparent">#00000000</color>
 </resources>
-

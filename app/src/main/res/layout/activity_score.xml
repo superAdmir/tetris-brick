@@ -8,17 +8,26 @@
     android:layout_margin="2dp"
     android:background="@drawable/shape_start_activity">
 
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        ads:adSize="BANNER"
+        ads:adUnitId="@string/banner_ad_unit_id"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
     <LinearLayout
         android:id="@+id/llScores"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
         android:background="@drawable/shape_scores"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:padding="@dimen/margin16dp"
+        app:layout_constraintBottom_toTopOf="@id/adView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.5">
 
         <TextView
             android:id="@+id/tvScoresTitle"
@@ -42,7 +51,7 @@
             style="@style/text_view_style"
             android:fontFamily="sans-serif-condensed-light"
             android:text="@string/initial_score"
-            android:textColor="@color/colorPrimary"
+            android:textColor="@color/colorOnBackground"
             android:textSize="@dimen/midTextSize" />
 
         <TextView
@@ -50,16 +59,7 @@
             style="@style/text_view_style"
             android:fontFamily="sans-serif-condensed-light"
             android:text="@string/initial_score"
-            android:textColor="@color/colorPrimary"
+            android:textColor="@color/colorOnBackground"
             android:textSize="@dimen/midTextSize" />
     </LinearLayout>
-
-    <com.google.android.gms.ads.AdView
-        android:id="@+id/adView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="680dp"
-        ads:adSize="BANNER"
-        ads:adUnitId="@string/banner_ad_unit_id"
-        tools:layout_editor_absoluteY="710dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

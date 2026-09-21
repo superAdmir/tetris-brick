@@ -8,6 +8,7 @@ import com.tb.tetrisbrick.game.ads.AdsManager;
 import com.tb.tetrisbrick.game.data.SharedPreferencesManager;
 import com.tb.tetrisbrick.game.databinding.ActivityScoreBinding;
 import com.tb.tetrisbrick.game.utils.AnimationUtil;
+import com.tb.tetrisbrick.game.utils.EdgeToEdgeUtils;
 
 public class ScoreActivity extends AppCompatActivity {
 
@@ -20,6 +21,7 @@ public class ScoreActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityScoreBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        EdgeToEdgeUtils.applySystemBarInsets(binding.getRoot());
         sharedPreferencesManager = new SharedPreferencesManager(getApplicationContext());
         binding.llScores.startAnimation(AnimationUtil.getZoomIn(this));
         binding.tvFirstScore.setText(sharedPreferencesManager.getFirstValue());

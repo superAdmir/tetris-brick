@@ -9,6 +9,7 @@ import com.tb.tetrisbrick.game.ads.AdsManager;
 import com.tb.tetrisbrick.game.databinding.ActivityMainBinding;
 import com.tb.tetrisbrick.game.ui.main.listeners.OnTimerStateChangedListener;
 import com.tb.tetrisbrick.game.utils.DebouncedOnClickListener;
+import com.tb.tetrisbrick.game.utils.EdgeToEdgeUtils;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -21,6 +22,7 @@ public class MainActivity extends AppCompatActivity implements OnTimerStateChang
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        EdgeToEdgeUtils.applySystemBarInsets(binding.getRoot());
 
         binding.playingArea.setDependencies(binding.tvScore, binding.tvNextFigure, this);
         binding.playingArea.cleanup();

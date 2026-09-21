@@ -1,13 +1,16 @@
 package com.tb.tetrisbrick.game.utils;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -37,14 +40,16 @@ public class NotificationUtil {
 
     private Notification getNotificationBuilder() {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, SCORE_CHANNEL).setSmallIcon(R.drawable.ic_star).setContentTitle(context.getString(R.string.new_score_notification_title)).setPriority(NotificationCompat.PRIORITY_DEFAULT).setContentIntent(pendingIntent).setContentText(context.getString(R.string.congrats_sub_title) + " - " + score + "!").setColorized(true).setAutoCancel(true);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            builder.setColor(context.getColor(R.color.colorPrimary));
-        }
+        builder.setColor(context.getColor(R.color.colorPrimary));
         return builder.build();
     }
 
     public void createNotification() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         notificationManager.notify(NOTIFICATION_ID, getNotificationBuilder());
     }

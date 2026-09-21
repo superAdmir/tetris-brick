@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The app only stores non-sensitive local prefs (high scores, gameplay settings) -
+     included in both cloud backup and device-to-device transfer, matching the
+     android:fullBackupContent="true" behavior used for API < 31. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="sharedpref" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="sharedpref" path="." />
+    </device-transfer>
+</data-extraction-rules>

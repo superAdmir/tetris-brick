@@ -6,7 +6,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,6 +14,7 @@ import com.tb.tetrisbrick.game.ads.AdsManager;
 import com.tb.tetrisbrick.game.data.SharedPreferencesManager;
 import com.tb.tetrisbrick.game.databinding.ActivitySettingsBinding;
 import com.tb.tetrisbrick.game.utils.Utils;
+import com.tb.tetrisbrick.game.utils.EdgeToEdgeUtils;
 import com.shawnlin.numberpicker.NumberPicker;
 
 import java.util.Arrays;
@@ -34,7 +34,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsView 
 
     private NumberPicker squaresNumberPicker;
 
-    private Switch enableHintsSwitch;
+    private androidx.appcompat.widget.SwitchCompat enableHintsSwitch;
 
     private SettingsPresenter settingsPresenter;
 
@@ -43,6 +43,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsView 
         super.onCreate(savedInstanceState);
         binding = ActivitySettingsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        EdgeToEdgeUtils.applySystemBarInsets(binding.getRoot());
         speedItems = Arrays.asList(findViewById(R.id.tvVeryFast), findViewById(R.id.tvFast),
                 findViewById(R.id.tvDefault), findViewById(R.id.tvSlow), findViewById(R.id.tvVerySlow));
         squaresNumberPicker = binding.squaresCountNumberPicker;
@@ -107,7 +108,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsView 
     @Override
     public void setSpeedTitle(int newItemId) {
         for (TextView item : speedItems) {
-            final Drawable wrappedDrawable = getDrawable(item, R.color.white);
+            final Drawable wrappedDrawable = getDrawable(item, R.color.colorSurfaceAlt);
             item.setBackground(wrappedDrawable);
             item.setTextColor(getResources().getColor(R.color.colorPrimary));
         }
@@ -115,7 +116,7 @@ public class SettingsActivity extends AppCompatActivity implements SettingsView 
         if (newItem != null) {
             final Drawable wrappedDrawable = getDrawable(newItem, R.color.colorPrimary);
             newItem.setBackground(wrappedDrawable);
-            newItem.setTextColor(getResources().getColor(R.color.white));
+            newItem.setTextColor(getResources().getColor(R.color.colorOnAccent));
         }
     }
 
