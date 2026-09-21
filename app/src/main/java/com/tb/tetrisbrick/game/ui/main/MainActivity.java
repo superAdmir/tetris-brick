@@ -1,6 +1,7 @@
 package com.tb.tetrisbrick.game.ui.main;
 
 import android.os.Bundle;
+import android.view.HapticFeedbackConstants;
 import android.view.View;
 
 import com.tb.tetrisbrick.game.R;
@@ -33,11 +34,18 @@ public class MainActivity extends AppCompatActivity implements OnTimerStateChang
         binding.ivRotate.setOnClickListener(new DebouncedOnClickListener(Values.DEBOUNCE_DELAY_IN_MILLIS) {
             @Override
             public void onDebouncedClick(View v) {
+                v.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK);
                 binding.playingArea.rotate();
             }
         });
-        binding.ivMoveDown.setOnClickListener(v -> moveDown());
-        binding.ivPausePlay.setOnClickListener(v -> pausePlay());
+        binding.ivMoveDown.setOnClickListener(v -> {
+            v.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK);
+            moveDown();
+        });
+        binding.ivPausePlay.setOnClickListener(v -> {
+            v.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK);
+            pausePlay();
+        });
 
         AdsManager.requestConsentThenLoadBanner(this, binding.adView);
     }

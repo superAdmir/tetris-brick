@@ -11,6 +11,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
+import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.widget.Toast;
 
@@ -398,12 +399,14 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
     @Override
     public void onBottomLineIsTrue() {
         scoreView.sumScoreWhenBottomLineIsTrue(squaresInRowCount);
+        performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK);
     }
 
     @Override
     public void onTopLineHasTrue() {
         isGameOver = true;
         gameStateStore.clear();
+        performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
         cancelTimer();
         onTimerStateChangedListener.disableAllControls();
         Toast.makeText(context, context.getString(R.string.game_over_text), Toast.LENGTH_LONG).show();
