@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Point;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,8 +17,11 @@ import android.widget.Toast;
 import com.tb.tetrisbrick.game.BuildConfig;
 import com.tb.tetrisbrick.game.R;
 import com.tb.tetrisbrick.game.Values;
+import com.tb.tetrisbrick.game.data.GameStateStore;
+import com.tb.tetrisbrick.game.data.SavedGame;
 import com.tb.tetrisbrick.game.data.SharedPreferencesManager;
 import com.tb.tetrisbrick.game.enums.FigureState;
+import com.tb.tetrisbrick.game.enums.FigureType;
 import com.tb.tetrisbrick.game.figures.Figure;
 import com.tb.tetrisbrick.game.figures.factory.FigureCreator;
 import com.tb.tetrisbrick.game.figures.factory.FigureFactory;
@@ -45,12 +49,14 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
     private boolean isTimerRunning, isGameOver;
 
     private Figure currentFigure;
+    private FigureType currentFigureType;
 
     private NetManager netManager;
     private FigureCreator figureCreator;
     private ScoreView scoreView;
     private PreviewAreaView previewAreaView;
     private SharedPreferencesManager sharedPreferencesManager;
+    private GameStateStore gameStateStore;
     private OnViewTouchListener onViewTouchListener;
 
     private Paint paint;
@@ -82,6 +88,7 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
         paint = new Paint();
         figureCreator = new FigureCreator();
         sharedPreferencesManager = new SharedPreferencesManager(getContext());
+        gameStateStore = new GameStateStore(getContext());
         onViewTouchListener = new OnViewTouchListener(context, this);
         setOnTouchListener(onViewTouchListener);
         this.squaresInRowCount = sharedPreferencesManager.getSquaresCountInRow();
@@ -253,11 +260,13 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
 
     public void rotate() {
         if (currentFigure != null && currentFigure.getState() == FigureState.MOVING && currentFigure.getRotatedFigure() != null && isTimerRunning) {
-            Figure figure = FigureFactory.getFigure(currentFigure.getRotatedFigure(), squareWidth, scale, context, currentFigure.pointOnScreen);
+            FigureType rotatedType = currentFigure.getRotatedFigure();
+            Figure figure = FigureFactory.getFigure(rotatedType, squareWidth, scale, context, currentFigure.pointOnScreen);
             if (figure != null) {
                 figure.initFigureMask();
                 if (netManager.canRotate(figure)) {
                     currentFigure = figure;
+                    currentFigureType = rotatedType;
                     netManager.checkBottomLine();
                     netManager.initRotatedFigure(figure);
                 }
@@ -266,9 +275,11 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
     }
 
     private void createFigure() {
-        Figure figure = FigureFactory.getFigure(figureCreator.getCurrentFigureType(), squareWidth, scale, squaresInRowCount, context);
+        FigureType type = figureCreator.getCurrentFigureType();
+        Figure figure = FigureFactory.getFigure(type, squareWidth, scale, squaresInRowCount, context);
         if (figure != null) {
             currentFigure = figure;
+            currentFigureType = type;
             if (netManager == null) {
                 netManager = new NetManager(this, verticalSquareCount, squaresInRowCount, squareWidth, scale);
             }
@@ -310,6 +321,71 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
         handler.postDelayed(pendingCreateFigure, Values.DELAY_IN_MILLIS);
     }
 
+    // The normal "New Game" entry point: discards any previously saved game (the user
+    // is deliberately starting over, not resuming) and spawns the first figure as usual.
+    public void startFreshGame() {
+        cleanup();
+        gameStateStore.clear();
+        createFigureWithDelay();
+    }
+
+    // Persists enough to resume later: the board (which already has the falling
+    // figure's cells baked in - see NetManager.getNetSnapshot()), that figure's type and
+    // grid position, the next figure preview, and the score. Does nothing if there's no
+    // game in progress to save (nothing spawned yet, or it already ended).
+    public void saveGameState() {
+        if (netManager == null || currentFigure == null || currentFigureType == null || isGameOver || scoreView == null) {
+            return;
+        }
+        SavedGame savedGame = new SavedGame(scoreView.getScore(), squaresInRowCount, netManager.getNetSnapshot(),
+                currentFigureType, currentFigure.getCurrentX(), currentFigure.getCurrentY(),
+                figureCreator.getNextFigureType());
+        gameStateStore.save(savedGame);
+    }
+
+    // Called instead of startFreshGame() when Android is recreating this screen after
+    // process death (i.e. onCreate() received a non-null savedInstanceState) rather than
+    // a fresh Intent launch. Waits for layout via post() - squareWidth/scale/netManager's
+    // dimensions aren't known until onMeasure() has run. Falls back to a fresh game for
+    // any missing, malformed, or dimension-mismatched save (see GameStateStore.load()),
+    // and always restores to a paused state rather than resuming the fall immediately.
+    public void restoreGameIfAvailable() {
+        post(() -> {
+            if (netManager == null) {
+                netManager = new NetManager(this, verticalSquareCount, squaresInRowCount, squareWidth, scale);
+            }
+            SavedGame savedGame = gameStateStore.load(squaresInRowCount);
+            Figure restoredFigure = savedGame == null ? null : reconstructFigure(savedGame);
+            if (savedGame == null || restoredFigure == null
+                    || savedGame.net.length != netManager.getNetRowCount()
+                    || savedGame.net[0].length != netManager.getNetColumnCount()) {
+                startFreshGame();
+                return;
+            }
+
+            netManager.restoreNet(savedGame.net);
+            currentFigure = restoredFigure;
+            currentFigureType = savedGame.currentFigureType;
+            netManager.initFigure(currentFigure);
+            figureCreator.restoreState(savedGame.currentFigureType, savedGame.nextFigureType);
+            scoreView.setScore(savedGame.score);
+            previewAreaView.drawNextFigure(FigureFactory.getFigure(savedGame.nextFigureType,
+                    (squareWidth * squaresInRowCount) / Values.SQUARES_COUNT_IN_ROW, context));
+
+            isGameOver = false;
+            isTimerRunning = false;
+            invalidate();
+            if (onTimerStateChangedListener != null) onTimerStateChangedListener.isTimerRunning(false);
+        });
+    }
+
+    private Figure reconstructFigure(SavedGame savedGame) {
+        Point pointOnScreen = new Point(savedGame.currentFigureGridX * squareWidth, savedGame.currentFigureGridY * squareWidth);
+        Figure figure = FigureFactory.getFigureAtGridPosition(savedGame.currentFigureType, squareWidth, scale, context, pointOnScreen);
+        if (figure != null) figure.initFigureMask();
+        return figure;
+    }
+
     @Override
     public void onFigureStoppedMove() {
         if (netManager.isVerticalLineComplete()) {
@@ -327,6 +403,7 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
     @Override
     public void onTopLineHasTrue() {
         isGameOver = true;
+        gameStateStore.clear();
         cancelTimer();
         onTimerStateChangedListener.disableAllControls();
         Toast.makeText(context, context.getString(R.string.game_over_text), Toast.LENGTH_LONG).show();

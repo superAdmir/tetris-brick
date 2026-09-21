@@ -25,8 +25,11 @@ public class MainActivity extends AppCompatActivity implements OnTimerStateChang
         EdgeToEdgeUtils.applySystemBarInsets(binding.getRoot());
 
         binding.playingArea.setDependencies(binding.tvScore, binding.tvNextFigure, this);
-        binding.playingArea.cleanup();
-        binding.playingArea.createFigureWithDelay();
+        if (savedInstanceState == null) {
+            binding.playingArea.startFreshGame();
+        } else {
+            binding.playingArea.restoreGameIfAvailable();
+        }
         binding.ivRotate.setOnClickListener(new DebouncedOnClickListener(Values.DEBOUNCE_DELAY_IN_MILLIS) {
             @Override
             public void onDebouncedClick(View v) {
@@ -57,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements OnTimerStateChang
 
     @Override
     protected void onStop() {
+        binding.playingArea.saveGameState();
         binding.playingArea.cancelTimer();
         super.onStop();
     }

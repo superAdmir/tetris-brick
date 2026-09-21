@@ -57,4 +57,17 @@ public class Values {
     public static final int NOTIFICATION_ID = 123;
     public static final String CHANNEL_NAME = "SCORES";
     public static final String SCORE_CHANNEL = NAMESPACE + ".scores";
+
+    /*SAVED GAME (process-death restore)*/
+    public static final int SAVED_GAME_SCHEMA_VERSION = 1;
+    public static final String SAVED_GAME_VERSION_KEY = "saved_game_version";
+    public static final String SAVED_GAME_SCORE_KEY = "saved_game_score";
+    public static final String SAVED_GAME_SQUARES_IN_ROW_KEY = "saved_game_squares_in_row";
+    public static final String SAVED_GAME_NET_ROWS_KEY = "saved_game_net_rows";
+    public static final String SAVED_GAME_NET_COLS_KEY = "saved_game_net_cols";
+    public static final String SAVED_GAME_NET_CELLS_KEY = "saved_game_net_cells";
+    public static final String SAVED_GAME_CURRENT_TYPE_KEY = "saved_game_current_type";
+    public static final String SAVED_GAME_CURRENT_GRID_X_KEY = "saved_game_current_grid_x";
+    public static final String SAVED_GAME_CURRENT_GRID_Y_KEY = "saved_game_current_grid_y";
+    public static final String SAVED_GAME_NEXT_TYPE_KEY = "saved_game_next_type";
 }

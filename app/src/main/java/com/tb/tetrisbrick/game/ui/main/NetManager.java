@@ -59,6 +59,22 @@ public class NetManager {
         return net[0].length;
     }
 
+    // For persisting/restoring an in-progress game. A restored net already has the
+    // active figure's cells baked in (figures are drawn directly into the net, same as
+    // settled blocks), so restoring it plus calling initFigure() with a matching figure
+    // is enough to resume - see GameStateStore.
+    public boolean[][] getNetSnapshot() {
+        boolean[][] snapshot = new boolean[net.length][net[0].length];
+        for (int i = 0; i < net.length; i++) {
+            System.arraycopy(net[i], 0, snapshot[i], 0, net[i].length);
+        }
+        return snapshot;
+    }
+
+    public void restoreNet(boolean[][] snapshot) {
+        this.net = snapshot;
+    }
+
     public void initFigure(Figure figure) {
         this.figure = figure;
         this.zeroNet = new boolean[figure.getHeightInSquare()][1];

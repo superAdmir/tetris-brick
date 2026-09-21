@@ -27,7 +27,7 @@ public class ScoreView extends AppCompatTextView {
         return Integer.parseInt(getText().toString());
     }
 
-    private void setScore(int score) {
+    public void setScore(int score) {
         this.setText(String.valueOf(score));
     }
 

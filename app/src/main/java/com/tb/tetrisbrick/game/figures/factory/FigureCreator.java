@@ -41,6 +41,14 @@ public class FigureCreator {
         return getNextFigureType();
     }
 
+    // For restoring a saved game: sets the current/next pair directly instead of
+    // generating them, so the sequence the player already saw (next figure preview)
+    // is honored rather than replaced with a fresh random pick.
+    public void restoreState(FigureType current, FigureType next) {
+        this.currentFigureType = current;
+        this.nextFigureType = next;
+    }
+
     private FigureType getNewFigure() {
         MainFigureType nextType = mainFigureType;
         FigureType nextFigure = nextFigureType;
