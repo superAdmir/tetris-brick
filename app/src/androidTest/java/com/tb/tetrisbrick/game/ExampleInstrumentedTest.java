@@ -21,6 +21,10 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         Context appContext = ApplicationProvider.getApplicationContext();
 
-        assertEquals("com.tb.tetrisbrick.game", appContext.getPackageName());
+        // Not a hardcoded literal: debug builds carry an applicationIdSuffix
+        // (com.tb.tetrisbrick.game.debug) so they can install alongside a release
+        // build without conflicting - BuildConfig.APPLICATION_ID always matches
+        // whatever variant this test is actually compiled/running as.
+        assertEquals(BuildConfig.APPLICATION_ID, appContext.getPackageName());
     }
 }

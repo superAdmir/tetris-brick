@@ -85,6 +85,14 @@ android {
     }
     buildTypes {
         debug {
+            // Installs as a separate package (com.tb.tetrisbrick.game.debug) alongside
+            // any existing release install of the app, instead of conflicting with it -
+            // a debug-signed build can never be installed over a release-signed one
+            // anyway (signature mismatch), so without this, testing on a device that
+            // already has the real app would require uninstalling it first and losing
+            // its saved scores. This never affects release builds.
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
             resValue "string", "admob_app_id", testAdmobAppId
             resValue "string", "banner_ad_unit_id", testBannerAdUnitId
             buildConfigField "boolean", "ADS_CONFIGURED_FOR_RELEASE", "false"
