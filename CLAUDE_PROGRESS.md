@@ -2,6 +2,87 @@
 
 Reusable handoff doc. Keep this current so a new session can pick up immediately.
 
+## Device QA session (2026-09-22, follow-up) — real device, not just build/lint/unit-test
+
+A physical device (Samsung Galaxy S23 FE, SM-S711B, Android 16 / API 36) became available
+over wireless ADB mid-session, after the previous session's emulator attempts (see the
+"Verification blocker" section below - now resolved, kept for the record). This section
+records what was **actually executed and observed**, distinguished from what's still
+unverified, per the instruction not to claim success without having run the check.
+
+**Device-safety finding first**: the device already had `com.tb.tetrisbrick.game`
+installed at **versionName 5.0 / versionCode 5** - ahead of anything in this git
+history (this repo's newest commit is still versionCode 2/"2.0"), confirming the repo
+was stale relative to whatever's actually shipped. A debug-signed build cannot install
+over a release-signed one with the same applicationId (signature mismatch), and forcing
+it would require uninstalling the real app and losing its saved scores - explicitly
+disallowed. Fixed by giving debug builds `applicationIdSuffix ".debug"` (commit
+`b6e05dc`) so they install as a separate, non-conflicting package. Confirmed via direct
+`aapt2 dump badging` on the built APK that the suffix was actually applied *before*
+installing anything, and confirmed after installing that the real
+`com.tb.tetrisbrick.game` package was untouched (already absent from the device before
+any action here, for reasons outside this session's actions - not caused by any install
+performed here).
+
+**What was executed** (not just compiled/reviewed):
+- `./gradlew :app:assembleDebug` → installed via `adb install` → **launched and driven
+  interactively via `adb shell input tap` + `uiautomator dump` for exact coordinates**.
+- `./gradlew :app:connectedDebugAndroidTest` → ran on-device. First run **failed** (a
+  real, if minor, bug this session introduced: `ExampleInstrumentedTest` hardcoded the
+  literal package name, which no longer matched once the debug variant got a suffix).
+  Fixed to compare against `BuildConfig.APPLICATION_ID`; second run **passed 1/1**.
+- `./gradlew :app:testDebugUnitTest` → 28/28 passing (Robolectric).
+- `./gradlew :app:lintDebug` → 0 errors.
+
+**Screens visually inspected via screenshots** (11 captured, `adb exec-out screencap`):
+Start screen (dark theme, cyan accents, edge-to-edge, test banner ad correctly bottom-
+anchored) → POST_NOTIFICATIONS permission dialog appeared on first launch (confirms
+that flow fires on-device, not just in code) → Game screen: a falling piece landing
+under real gravity (score 0 → 10 automatically, no input), NEXT preview updating,
+vertical hint lines → Pause (icon switches to play, score freezes) → Resume → Back
+navigation to Start (clean, no rewarded-ad interference - confirms that removal is
+effective on-device, not just in code) → Scores screen (a real high score of 60,
+recorded from this session's play, correctly persisted and displayed with the
+violet-accented top score) → Settings screen (color picker showing the correct default
+checkmark on the red/Z-figure swatch, speed picker, squares-count picker, hints switch,
+"Other" section with now-visible arrow icons - confirms the icon-color fix from the
+design-refresh phase) → tapped a different color swatch, checkmark moved correctly →
+started a new game, **the falling piece rendered in the newly-chosen purple color** -
+full end-to-end confirmation that the color-preference migration/persistence work
+(commit `b3487cd`) is correct on a real device, not just in Robolectric.
+`uiautomator dump` bounds also directly confirmed no overlap between the control
+buttons (bottom edge y=2054) and the ad banner (top edge y=2065), and that content
+starts at y=97 (below the status bar) - the responsive-layout and edge-to-edge fixes
+hold up on real hardware, not just in ConstraintLayout math.
+
+**What was attempted but not cleanly captured**: a game-over screenshot. Rapid-fired
+~60 taps at the move-down button to fill the board quickly; one stray tap landed on the
+ad banner instead and opened an unrelated real app (Google Play Console, already
+installed on this device) via the test ad's click-through - not a bug in this app, just
+an artifact of blind coordinate-tapping automation. Backed out and left the device
+clean rather than continuing to fight it. Game-over logic itself (clears the saved
+game, shows the "GAME OVER" toast, delayed finish) is covered by
+`PlayingAreaViewTest.gameOver_clearsAnyPreviouslySavedGame` and was re-read/confirmed
+correct in code this session, but **not visually observed on-device**.
+
+**Not tested this session** (flagging honestly rather than omitting):
+- Small-screen device / a physically different screen size (only this one 1080x2340
+  device was available).
+- Larger system font scale (device's font size setting was not changed).
+- An actual old-APK-then-new-APK **upgrade install** on a device (the device's existing
+  install was versionCode 5, newer than anything buildable from this repo, so a literal
+  "install old, then install new over it" on-device upgrade test wasn't possible with
+  the artifacts available here). The upgrade/migration *logic* (legacy color key,
+  high scores, settings all surviving together) is covered by
+  `SharedPreferencesManagerTest.upgradeInstall_highScoresAndSettingsSurviveAlongsideColorMigration`,
+  which simulates the legacy on-disk state directly - a real device-level upgrade
+  install was not performed, and that distinction matters per the instruction not to
+  claim a successful upgrade migration from unit tests alone.
+- Rotation-near-wall/floor/occupied-cell and multi-row-clear scenarios were not
+  specifically staged and screenshotted on-device (they're covered by 6 NetManagerTest
+  cases and were working correctly during normal on-device play, but weren't
+  deliberately engineered into frame the way the color-persistence test was).
+
 ## Baseline
 
 - Verified baseline commit: `f57bd46` on `main` ("Updated target API version to latest"), dated 2024-09-29, matches the prior read-only audit.
@@ -49,11 +130,31 @@ All prior audit points independently reverified true as of this session:
 7. **Tests** — DONE for what's unit-testable. 19 Robolectric-backed unit tests total: `NetManagerTest` (init, rotation collision x4, line-clear x2), `SharedPreferencesManagerTest` (color migration x4), `GameStateStoreTest` (save/restore round-trip + 5 validation-rejection cases). `ExampleInstrumentedTest` modernized to current androidx.test APIs and confirmed to compile (`:app:compileDebugAndroidTestSources`), but **not executed** - no working emulator/device in this environment. Lint (`:app:lintDebug`) clean.
 8. **Docs** — DONE. This file (kept current throughout); `README.md` rewritten (dropped the false "No ads" claim, documented the real feature set including save/restore and the ad/consent behavior, removed the "share your score" feature claim since that code path was found to be dead/unwired - `Values.SHARE_INTENT_TYPE` and `R.string.share_body_part_second` exist but nothing ever constructs a share `Intent`, confirmed via lint's unused-resource warning and a full-codebase grep); `RELEASE_CHECKLIST.md` added covering signing, production AdMob IDs, version, Play Console Data safety, internal testing, and the manual-QA items that still need a real device specifically because of the emulator blocker.
 
-## Verification blocker: no working emulator in this environment
+## Emulator blocker (2026-09-21) — root-caused and resolved 2026-09-22
 
-Tried to boot an AVD (`tetris_test`, Pixel 5 profile, android-35 google_apis x86_64 system image, manually created since `avdmanager` in the legacy `tools/bin` package fails with `NoClassDefFoundError: javax/xml/bind/...` under JDK 17) via `emulator -avd tetris_test`. It starts (logs through "Started GRPC server", "Advertising in...") then dies with exit code 139 (SIGSEGV). Its own verbose log shows it invoking `qemu-system-armel-headless -cpu cortex-a15 -machine type=ranchu` (an ARM CPU emulation path) against the x86_64 system image's kernel/vendor/system files - a binary/image mismatch consistent with no hardware virtualization (HVF) being available to this sandboxed shell, so the emulator's own arch-selection logic picked the wrong backend and crashed. `adb devices` never showed a connected device.
+Original attempt: booting an AVD (`tetris_test`, Pixel 5 profile, android-35 google_apis
+x86_64 system image, manually created since `avdmanager` in the legacy `tools/bin`
+package fails with `NoClassDefFoundError: javax/xml/bind/...` under JDK 17) via
+`emulator -avd tetris_test` started (logged through "Started GRPC server") then died
+with exit code 139 (SIGSEGV), invoking an ARM QEMU backend against an x86_64 image.
+At the time this was attributed to "no hardware virtualization available in this
+sandbox."
 
-**What was verified instead**: `./gradlew :app:assembleDebug`, `:app:assembleRelease` (up to the signing step), `:app:testDebugUnitTest`, and `:app:lintDebug` all clean; every layout XML was hand-reviewed for correct ConstraintLayout references after the rewrite. **Not verified**: actual on-device/emulator rendering, touch interaction, or screenshots. The user should open the project in Android Studio (which manages its own emulator/device connection outside this sandboxed shell) or use a physical device to confirm the visual result before shipping - flagging this explicitly rather than claiming a visual check that didn't happen.
+**That conclusion was wrong.** A follow-up session checked properly (host arch, HVF
+support, matching system image - exactly what should have been checked the first time
+instead of concluding "incompatible host" from one crash): this Mac is genuinely
+x86_64 with `kern.hv_support: 1` (HVF available), and the installed system image is a
+native x86_64 match. The actual cause was a config bug in the manually-written AVD:
+`config.ini` had `abi.type=x86_64` but was missing `hw.cpu.arch=x86_64` entirely -
+without it, the emulator launcher guessed the wrong backend. Adding that one line let
+the same AVD boot cleanly to a working, adb-connected device. Root cause, not a
+retry-until-it-works fix.
+
+In practice, a **real physical device** (Samsung Galaxy S23 FE) became available over
+wireless ADB before the fixed emulator was needed for anything further - see the
+"Device QA session" section at the top of this file for what was actually run and
+observed on it. The emulator fix is recorded here in case a future session needs one
+and hits the same "looks like no HVF" red herring.
 
 ## Toolchain version table (as of 2026-09-21, all latest stable / no alpha-beta-RC)
 
@@ -106,7 +207,9 @@ All of the above was independently re-verified against official sources in a fol
 11. `5ff14b4` — haptics + instrumentation test modernization
 12. `8654ff7` — README rewrite, RELEASE_CHECKLIST.md, first progress log finalization
 13. `1c7cc1c` — (follow-up session) release ad-config hardening (fail-fast on missing/sample production IDs), AdListener diagnostics, restore/migration regression tests (PlayingAreaViewTest, upgrade-scenario SharedPreferencesManagerTest)
-14. (this commit) — independent toolchain re-verification, emulator fix, final handoff update
+14. `93a857b` — independent toolchain re-verification, expanded signing-key guidance
+15. `b6e05dc` — debug applicationIdSuffix (device-safe testing) + the instrumentation test bug it exposed and fixed
+16. (this commit) — device QA session results, final handoff update
 
 ## Open decisions / needs user input
 
@@ -117,13 +220,15 @@ All of the above was independently re-verified against official sources in a fol
     - **If Play App Signing was never enabled** (self-managed signing, upload key *is* the distribution key) - this is more serious; there's no automatic self-service reset. Contact Google Play support's signing-key-reset process (restricted, for lost/compromised keys), or as a last resort republish under a new applicationId (loses review/install history).
   - Not acted on automatically (no history rewrite, no credential rotation) per instruction - this is the owner's call once they've checked which case applies. See `RELEASE_CHECKLIST.md` §1.
 - **Production AdMob IDs**: none available; release config falls back to Google's official test IDs (`BuildConfig.ADS_CONFIGURED_FOR_RELEASE` reflects whether real ones were found) until the user supplies real ad unit IDs via `admob.properties`. See `RELEASE_CHECKLIST.md` §2.
-- **Final versionCode**: still `2`/`"2.0"`, unchanged — pending confirmation against Play Console per user instruction, not incrementing blindly. See `RELEASE_CHECKLIST.md` §3.
+- **Final versionCode**: still `2`/`"2.0"` in this repo, unchanged — pending confirmation against Play Console per user instruction, not incrementing blindly. **Important new evidence**: the physical test device already had this app installed at **versionCode 5 / versionName "5.0"** - confirming the real, currently-shipped app is well ahead of what's in this git history. Whatever versionCode this branch eventually ships **must** be set to at least 6 (checked against the actual Play Console listing, not assumed from this number) or the upload will be rejected as a downgrade. See `RELEASE_CHECKLIST.md` §3.
+- **Debug package identity**: debug builds now install as `com.tb.tetrisbrick.game.debug` (commit `b6e05dc`), not `com.tb.tetrisbrick.game` - a deliberate, standard Android practice so a debug build can never conflict with (or require uninstalling) a real install. Release builds are unaffected.
 - **Rewarded ads**: removed rather than fixed (see phase 3 above) — reintroduce only with a real, designed, tested opt-in reward if wanted.
 - **`io.github.ShawnLin013:number-picker`**: unmaintained since 2021 (confirmed via the toolchain research pass), still in use for the squares-per-row picker in Settings. Not replaced — no drop-in replacement evaluated, out of scope for this pass, but worth flagging as an ongoing dependency risk.
 
 ## Next steps for a future session
 
-- Get a real emulator or physical device connected and work through `RELEASE_CHECKLIST.md` §6 (manual QA) - this is the single biggest gap left. Everything in this pass was verified via build/lint/unit-test only.
-- Supply production AdMob IDs and a real release keystore, then do a full release-build dry run.
-- Decide on the git-history signing-credential exposure (rotate vs. scrub vs. accept the risk).
+- Real-device QA is now done for the core flows (see "Device QA session" above) - the remaining gaps are: small-screen device, larger font scale, an actual on-device upgrade install (old APK → new APK), and a clean game-over screenshot (attempted, interrupted by a stray ad-click during rapid automated testing - not a bug, just didn't get a clean capture).
+- **Reconcile versionCode against Play Console before any release** - this repo's history and the real shipped app have diverged (see the versionCode note above); don't assume this branch's `2` is meaningful, check the actual next-available versionCode in Play Console.
+- Supply production AdMob IDs and a real release keystore, then do a full release-build dry run (the build will now refuse without real IDs or the explicit local-testing opt-in - see commit `1c7cc1c`).
+- Decide on the git-history signing-credential exposure (rotate vs. scrub vs. accept the risk) - check Play Console's App integrity page first to determine whether the exposed credential is the upload key (self-service reset available) or something more serious.
 - If desired: replace the unmaintained number-picker dependency, and design a real opt-in rewarded-ad benefit rather than leaving rewarded ads removed.
