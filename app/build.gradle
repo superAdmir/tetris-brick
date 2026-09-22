@@ -10,19 +10,58 @@ if (hasSigningConfig) {
 
 // Google's official sample/test AdMob IDs (https://developers.google.com/admob/android/test-ads).
 // Safe to ship: they never serve real ads or earn revenue. Debug builds always use these.
-// Release builds use these same IDs as a fallback UNLESS admob.properties (gitignored, never
-// committed) supplies real production IDs - see admob.properties.example.
 def testAdmobAppId = "ca-app-pub-3940256099942544~3347511713"
 def testBannerAdUnitId = "ca-app-pub-3940256099942544/6300978111"
 
+// Release builds must supply real production IDs via admob.properties (gitignored,
+// never committed - see admob.properties.example). Unlike debug, release does NOT
+// silently fall back to the sample IDs: a release build with no/incomplete/sample-value
+// config fails with an actionable message, so it's impossible to accidentally ship (or
+// even locally sideload) a "release" build that's secretly still using test ad IDs.
+//
+// The one sanctioned exception is local release-build testing (checking R8/minification
+// behavior, signing, etc. without having real AdMob IDs yet): set
+// useTestAdsForLocalRelease=true in admob.properties to explicitly opt in to test ads in
+// a release build. This is a deliberate, visible switch in a gitignored file - never a
+// default.
 def admobPropertiesFile = rootProject.file("admob.properties")
 def admobProperties = new Properties()
-def hasProductionAdmobConfig = admobPropertiesFile.exists()
-if (hasProductionAdmobConfig) {
+if (admobPropertiesFile.exists()) {
     admobPropertiesFile.withInputStream { admobProperties.load(it) }
 }
-def releaseAdmobAppId = admobProperties.getProperty("admobAppId", testAdmobAppId)
-def releaseBannerAdUnitId = admobProperties.getProperty("bannerAdUnitId", testBannerAdUnitId)
+def allowTestAdsInRelease = admobProperties.getProperty("useTestAdsForLocalRelease", "false").toBoolean()
+def configuredAdmobAppId = admobProperties.getProperty("admobAppId")
+def configuredBannerAdUnitId = admobProperties.getProperty("bannerAdUnitId")
+def hasProductionAdmobConfig = configuredAdmobAppId != null && configuredBannerAdUnitId != null
+        && configuredAdmobAppId != testAdmobAppId && configuredBannerAdUnitId != testBannerAdUnitId
+
+// Gradle configures every buildType block regardless of which tasks are actually
+// requested (e.g. even a plain `assembleDebug` still evaluates the `release` block
+// below), so these must never be null - the actual enforcement is the taskGraph check
+// further down, which only fires when a release task is genuinely being built.
+def releaseAdmobAppId = hasProductionAdmobConfig ? configuredAdmobAppId : testAdmobAppId
+def releaseBannerAdUnitId = hasProductionAdmobConfig ? configuredBannerAdUnitId : testBannerAdUnitId
+
+gradle.taskGraph.whenReady { taskGraph ->
+    // Exact task-name match only (not startsWith/contains): AGP has plenty of internal
+    // tasks whose names contain "release" or start with "bundle"/"assemble"
+    // (bundleReleaseClassesToCompileJar, mergeReleaseAssets, etc.) that aren't actually
+    // "produce a release artifact" - only these well-known entry-point/lifecycle task
+    // names are. "assemble"/"bundle"/"build" are included since they build every variant,
+    // including release, when invoked with no variant qualifier.
+    def releaseArtifactTaskNames = ["assemble", "assembleRelease", "bundle", "bundleRelease", "build"] as Set
+    def buildingRealRelease = taskGraph.allTasks.any { releaseArtifactTaskNames.contains(it.name) }
+    if (buildingRealRelease && !hasProductionAdmobConfig && !allowTestAdsInRelease) {
+        throw new GradleException(
+                "Release build requested, but no production AdMob configuration was found.\n" +
+                "  - Copy admob.properties.example to admob.properties (gitignored) and fill in\n" +
+                "    your real admobAppId / bannerAdUnitId from the AdMob console, OR\n" +
+                "  - For local release-build testing only (signing/R8/etc, not for distribution),\n" +
+                "    add 'useTestAdsForLocalRelease=true' to admob.properties to explicitly opt in\n" +
+                "    to Google's sample ad IDs in this release build.\n" +
+                "This check exists so a release build can never silently ship with sample ad IDs.")
+    }
+}
 
 android {
     signingConfigs {

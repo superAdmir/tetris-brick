@@ -67,4 +67,43 @@ class SharedPreferencesManagerTest {
 
         assertEquals(Values.FIGURE_COLOR_J, manager.figuresColorKey)
     }
+
+    // Simulates an actual upgrading install: high scores, gameplay settings, and the old
+    // int-based color preference all present together (not a fresh install, and not just
+    // the color key in isolation) - the scenario the "do not claim a successful upgrade
+    // migration based solely on fresh-install tests" requirement is about.
+    @Test
+    fun upgradeInstall_highScoresAndSettingsSurviveAlongsideColorMigration() {
+        val prefs = context.getSharedPreferences(Values.PREFERENCES_KEY, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putInt(Values.LEGACY_FIGURE_COLOR_KEY, 98765) // old, untrustworthy resource id
+            .putInt(Values.FIRST_VALUE_KEY, 500)
+            .putInt(Values.SECOND_VALUE_KEY, 300)
+            .putInt(Values.THIRD_VALUE_KEY, 100)
+            .putLong(Values.FIGURE_SPEED_KEY, 900L)
+            .putBoolean(Values.ENABLE_HINTS_KEY, false)
+            .putInt(Values.SQUARES_COUNT_IN_ROW_KEY, 12)
+            .commit()
+
+        // Existing high scores and settings must read back exactly as they were.
+        assertEquals("500", manager.firstValue)
+        assertEquals("300", manager.secondValue)
+        assertEquals("100", manager.thirdValue)
+        assertEquals(900L, manager.figuresSpeed)
+        assertFalse(manager.isHintsEnabled)
+        assertEquals(12, manager.squaresCountInRow)
+
+        // The color preference migrates safely, same as in isolation.
+        assertEquals(Values.DEFAULT_FIGURE_COLOR_KEY, manager.figuresColorKey)
+        assertFalse(prefs.contains(Values.LEGACY_FIGURE_COLOR_KEY))
+
+        // A new high score set after the upgrade must correctly slot in above the old
+        // ones without disturbing the settings that were just verified above.
+        manager.putNewScore(700)
+        assertEquals("700", manager.firstValue)
+        assertEquals("500", manager.secondValue)
+        assertEquals("300", manager.thirdValue)
+        assertEquals(900L, manager.figuresSpeed)
+        assertEquals(12, manager.squaresCountInRow)
+    }
 }

@@ -5,8 +5,10 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.ump.ConsentInformation;
 import com.google.android.ump.ConsentRequestParameters;
@@ -43,6 +45,14 @@ public class AdsManager {
         if (!mobileAdsInitialized) {
             MobileAds.initialize(activity, status -> mobileAdsInitialized = true);
         }
+        // Diagnostics only - a failed/offline/no-fill load is never retried and never
+        // blocks or otherwise affects gameplay; the AdView just stays empty.
+        adView.setAdListener(new AdListener() {
+            @Override
+            public void onAdFailedToLoad(@NonNull LoadAdError adError) {
+                Log.w(TAG, "Banner ad failed to load: " + adError.getMessage());
+            }
+        });
         adView.loadAd(new AdRequest.Builder().build());
     }
 
