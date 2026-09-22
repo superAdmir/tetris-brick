@@ -11,10 +11,21 @@ Concise, ordered list for turning this branch into a Play Store update. See
       tracked, and the keystore binary itself was never committed.
 - [ ] **Security note**: `keystore.properties` (containing the real store/key password)
       was tracked in git history before this modernization branch untracked it (commit
-      `1e46d15`). The password is still readable in earlier commits. Before this repo is
-      made public (if it isn't already) or before relying on that password long-term,
-      consider rotating the key's password via Play App Signing, and/or scrubbing it
-      from git history. This was flagged, not acted on automatically - it's your call.
+      `1e46d15`). The password is still readable in earlier commits.
+      - `keyAlias=upload` strongly suggests this is the **Play App Signing upload key**,
+        not Google's own held app-signing key (Android Studio's default alias for an
+        upload key is literally "upload"). Check Play Console → your app → Setup → App
+        integrity: if Play App Signing is enabled (mandatory for apps published since
+        Aug 2021), it lists the upload key and app signing key certificates separately.
+      - **If it's the upload key**: use Play Console's self-service "Request upload key
+        reset" on that same page - generates a fresh upload keystore and invalidates the
+        old one for future uploads, with no effect on the app's identity for existing
+        users.
+      - **If Play App Signing was never enabled** (upload key = distribution key): more
+        serious - there's no self-service reset; you'd need Google Play support's
+        signing-key-reset process, or in the worst case republish under a new
+        applicationId.
+      - Not rotated or rewritten automatically - verify which case applies, then act.
 - [ ] Run `./gradlew :app:assembleRelease` (or `bundleRelease` for an AAB) locally and
       confirm it signs successfully end to end.
 
@@ -22,11 +33,13 @@ Concise, ordered list for turning this branch into a Play Store update. See
 
 - [ ] Copy `admob.properties.example` to `admob.properties` (gitignored) and fill in
       your real `admobAppId` / `bannerAdUnitId` from the AdMob console.
-- [ ] Without that file, release builds fall back to Google's official test ad IDs -
-      safe to ship (never serves real ads, never crashes), but **earns no revenue** and
-      shouldn't be the final shipped configuration. `BuildConfig.ADS_CONFIGURED_FOR_RELEASE`
-      reflects whether real IDs were found at build time if you want to assert this in a
-      CI check.
+- [ ] **A real release build (`assemble`/`bundle`) now fails fast** with an actionable
+      Gradle error if `admob.properties` is missing, incomplete, or still has Google's
+      sample IDs in it - it no longer silently falls back to test ads. If you genuinely
+      need a release build without real IDs yet (testing signing/R8 locally, not for
+      distribution), add `useTestAdsForLocalRelease=true` to `admob.properties` as an
+      explicit, visible opt-in. `BuildConfig.ADS_CONFIGURED_FOR_RELEASE` still reflects
+      whether real IDs were actually found, for any CI check you want to add on top.
 - [ ] Rewarded ads were removed during this modernization (the old implementation never
       actually granted anything - see `CLAUDE_PROGRESS.md`). If you want them back,
       design a real, clearly-stated opt-in benefit first; don't re-add the dead
