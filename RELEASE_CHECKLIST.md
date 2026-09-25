@@ -3,61 +3,134 @@
 Concise, ordered list for turning this branch into a Play Store update. See
 `CLAUDE_PROGRESS.md` for the full modernization history and rationale behind each item.
 
+> **versionCode 6 / "6.0" is confirmed live in production** (owner-reported,
+> 2026-09-25). This checklist's items below describe the verification work that led up
+> to that release; they were all completed *before* the publish. No session in this
+> history has uploaded to or directly observed Play Console - the production status
+> above is the owner's own report, not something checked here. For the **next**
+> release, start this checklist over: none of the checked items below re-verify
+> automatically against a new versionCode.
+
 ## 1. Signing
 
-- [ ] Confirm `release.keystore` (or your actual keystore file) exists locally at the
-      path `keystore.properties` points to (`storeFile=release.keystore`, repo root).
-      It is **not** in this checkout or in git - only `keystore.properties` was ever
-      tracked, and the keystore binary itself was never committed.
-- [ ] **Security note**: `keystore.properties` (containing the real store/key password)
-      was tracked in git history before this modernization branch untracked it (commit
-      `1e46d15`). The password is still readable in earlier commits.
-      - `keyAlias=upload` strongly suggests this is the **Play App Signing upload key**,
-        not Google's own held app-signing key (Android Studio's default alias for an
-        upload key is literally "upload"). Check Play Console → your app → Setup → App
-        integrity: if Play App Signing is enabled (mandatory for apps published since
-        Aug 2021), it lists the upload key and app signing key certificates separately.
-      - **If it's the upload key**: use Play Console's self-service "Request upload key
-        reset" on that same page - generates a fresh upload keystore and invalidates the
-        old one for future uploads, with no effect on the app's identity for existing
-        users.
-      - **If Play App Signing was never enabled** (upload key = distribution key): more
-        serious - there's no self-service reset; you'd need Google Play support's
-        signing-key-reset process, or in the worst case republish under a new
-        applicationId.
-      - Not rotated or rewritten automatically - verify which case applies, then act.
-- [ ] Run `./gradlew :app:assembleRelease` (or `bundleRelease` for an AAB) locally and
-      confirm it signs successfully end to end.
+- [x] **Play App Signing confirmed enabled** for `com.tb.tetrisbrick.game` (2026-09-23,
+      owner-supplied Play Console screenshots): "Releases signed by Play" shown, the
+      app-signing key is in use, "Request upload key reset" is available, and the
+      original upload keystore is confirmed unavailable. This means Google already
+      holds the real distribution key - only the local *upload* key (used to sign what
+      you send to Play) needs replacing, via the self-service reset path below. This
+      was the likely case per the `keyAlias=upload` evidence noted previously, and is
+      now confirmed rather than assumed.
+- [x] **New upload key created and verified** (2026-09-23): the owner generated it
+      themselves (this session never had/supplied a password) at
+      `/Users/AdmirSatara/tetris-brick-upload-key/tetris-brick-upload.keystore`
+      (PKCS12, alias `upload`, RSA 2048, valid to 2054-02-08). This session
+      independently verified the public certificate
+      (`tetris-brick-upload-certificate.pem` in the same directory) via
+      `openssl x509 -noout -fingerprint -sha256`: SHA-256
+      `87:90:5E:14:DA:64:6D:60:BE:5E:F6:AB:10:45:59:27:11:20:2E:C8:5D:E5:74:5D:16:01:7A:4B:7E:23:C6:99`
+      - an exact match to the owner-reported expected value. File permissions
+      restricted (keystore `600`, directory `700`).
+- [x] **Upload-key reset request: submitted by the owner, pending Google activation.**
+      Visible as "pending" in Play Console per the owner. Not submitted by this
+      session; Google's acceptance is not claimed.
+- [x] **Local signing config updated and verified** (2026-09-23). The owner ran the
+      Python helper (`~/tetris-brick-upload-key/configure_keystore_properties.py`) -
+      it verified the keystore/alias and the certificate SHA-256 first, then wrote
+      `keystore.properties` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`)
+      atomically with `600` permissions. Confirmed on this side: `storeFile` now points
+      at `/Users/AdmirSatara/tetris-brick-upload-key/tetris-brick-upload.keystore`,
+      file permissions are `600`.
+- [x] **Local signed release build succeeds** (2026-09-23). Ran
+      `./gradlew :app:assembleRelease` with no `useTestAdsForLocalRelease` override:
+      `BUILD SUCCESSFUL`. Output APK:
+      `app/build/outputs/apk/release/app-release.apk` (3,231,313 bytes). Verified with
+      `apksigner verify --verbose --print-certs` (Android SDK build-tools 36.0.0):
+      `Verifies: true`, signed with the new upload key, one signer, certificate SHA-256
+      `87905e14da646d60be5ef6ab1045592711202ec85de5745d16017a4b7e23c699` - normalized
+      and compared programmatically against the expected
+      `87:90:5e:14:da:64:6d:60:be:5e:f6:ab:10:45:59:27:11:20:2e:c8:5d:e5:74:5d:16:01:7a:4b:7e:23:c6:99`
+      (case/colons aside): **exact match**. `versionCode`/`versionName` read directly
+      from the APK via `aapt2 dump badging`: `2` / `"2.0"` - unchanged, as required.
+      APK was **not** installed (confirmed via `adb shell pm list packages`: only the
+      pre-existing debug package is present on the connected device).
+- [x] **Local signed release AAB also succeeds and is independently verified**
+      (2026-09-23, with versionCode 6 - see §3). Ran `./gradlew :app:bundleRelease`, no
+      `useTestAdsForLocalRelease`: `BUILD SUCCESSFUL`. Output:
+      `app/build/outputs/bundle/release/app-release.aab` (6,021,813 bytes, SHA-256
+      `999a2d28a9782cc23951493d438ac3e67acb64dfdaa56de87de450c2c6103baf`). Verified with
+      AAB-appropriate tooling (an `.aab` is JAR-signed, not APK-signed, so `apksigner`
+      doesn't apply): `jarsigner -verify -verbose -certs` → `jar verified.` (signature
+      files literally named `META-INF/UPLOAD.SF`/`UPLOAD.RSA`), and `keytool -printcert
+      -jarfile` → signer SHA-256
+      `87:90:5E:14:DA:64:6D:60:BE:5E:F6:AB:10:45:59:27:11:20:2E:C8:5D:E5:74:5D:16:01:7A:4B:7E:23:C6:99`
+      - exact match to the expected value, confirmed programmatically.
+- [x] **`bundletool` structural validation complete** (2026-09-23, same day follow-up).
+      `bundletool validate --bundle=app-release.aab`: exit 0, no errors. `bundletool
+      dump manifest`: confirms `package="com.tb.tetrisbrick.game"`,
+      `android:versionCode="6"`, `android:versionName="6.0"` directly from the AAB's own
+      protobuf manifest - independent of the Gradle/`aapt2`-based checks above.
+      Re-checksummed the AAB (`shasum -a 256`): unchanged, exact match to the value
+      above - confirms the artifact wasn't modified between checks. See
+      `CLAUDE_PROGRESS.md` "bundletool structural validation" for how bundletool was
+      obtained (the earlier `brew install` had silently failed to actually install it
+      despite exiting 0; the already-downloaded bottle was extracted and run directly
+      rather than starting a second install).
+- [x] **Google's upload-key reset: activation implied by the confirmed production
+      publish** (2026-09-25) - versionCode 6/"6.0" is now live, per the owner, and a
+      real Play Console upload cannot succeed signed with an unactivated upload key.
+      This session did not observe the activation directly in Play Console; it's
+      inferred from the publish having succeeded, not independently checked here.
+- [ ] **Security note**: `keystore.properties` for the *old, lost* keystore (different
+      keystore than the one above) had its real password tracked in git history before
+      this modernization branch untracked it (commit `1e46d15`). Now moot for signing
+      (replaced), but worth knowing if that old password was reused anywhere else.
 
 ## 2. AdMob production IDs
 
-- [ ] Copy `admob.properties.example` to `admob.properties` (gitignored) and fill in
-      your real `admobAppId` / `bannerAdUnitId` from the AdMob console.
-- [ ] **A real release build (`assemble`/`bundle`) now fails fast** with an actionable
-      Gradle error if `admob.properties` is missing, incomplete, or still has Google's
-      sample IDs in it - it no longer silently falls back to test ads. If you genuinely
-      need a release build without real IDs yet (testing signing/R8 locally, not for
-      distribution), add `useTestAdsForLocalRelease=true` to `admob.properties` as an
-      explicit, visible opt-in. `BuildConfig.ADS_CONFIGURED_FOR_RELEASE` still reflects
-      whether real IDs were actually found, for any CI check you want to add on top.
+- [x] **Banner ad unit IDs configured** (2026-09-23): all four per-screen placements are
+      set in the local, gitignored `admob.properties` (see `admob.properties.example`
+      for the property names) - Home/start (`tbgMainBanner`), Gameplay (`tbgGameBanner`),
+      Scores (`tbgScoreBanner`), Settings (`tbgSettingsBanner`). Each screen's `AdView`
+      loads its own placement; confirmed via `:app:generateReleaseResValues` that each
+      resolves to its correct distinct ad-unit ID, and confirmed on-device (debug build,
+      test ads only) that all four screens load their banner without error.
+- [x] **Production AdMob App ID configured** (2026-09-23, same day follow-up): the owner
+      supplied `ca-app-pub-6402675413704299~8130164394` directly from the AdMob console
+      (not derived from any ad-unit ID); it's now set as `admobAppId` in
+      `admob.properties`. Re-verified via `:app:generateReleaseResValues` that the
+      release resource XML resolves `admob_app_id` to this exact value, while debug's
+      still resolves to Google's test App ID.
+- [x] **AdMob production config is now fully complete and verified.** Re-ran
+      `./gradlew :app:assembleRelease` (2026-09-23, without
+      `useTestAdsForLocalRelease`, which remains absent/unused) and confirmed the AdMob
+      gate now **passes** - the build proceeds past resource generation and compilation
+      and fails only later, at `:app:validateSigningRelease` (missing keystore file -
+      see §1, a separate, unrelated blocker). This confirms AdMob readiness
+      independently of signing, with no live ad requests made.
+      `BuildConfig.ADS_CONFIGURED_FOR_RELEASE` now evaluates `true` for a real release
+      build.
 - [ ] Rewarded ads were removed during this modernization (the old implementation never
-      actually granted anything - see `CLAUDE_PROGRESS.md`). If you want them back,
-      design a real, clearly-stated opt-in benefit first; don't re-add the dead
-      implementation.
+      actually granted anything - see `CLAUDE_PROGRESS.md`) and remain removed as of
+      this pass too, deliberately, even though production rewarded ad units exist. If
+      you want them back, design a real, clearly-stated opt-in benefit first; don't
+      re-add the dead implementation.
 - [ ] Confirm the UMP consent flow (`AdsManager`) shows a consent form for EEA/UK test
       devices before requesting ads there (use AdMob's test device / geography override
       to verify without leaving the EEA).
 
 ## 3. Version
 
-- [ ] `versionCode`/`versionName` in `app/build.gradle` are still `2` / `"2.0"` -
-      **unchanged from before this modernization pass**, deliberately, per instruction to
-      treat the final release versionCode as pending confirmation against Play Console.
-      **Confirmed evidence this matters**: a real device used for QA in this pass
-      already had this app installed at **versionCode 5 / versionName "5.0"** - the
-      actually-shipped app has moved past this git history entirely. Do not bump to 3;
-      check Play Console's actual current versionCode and set this to at least one
-      higher than that.
+- [x] **versionCode/versionName finalized, built, and confirmed published**
+      (2026-09-23 build, 2026-09-25 owner-confirmed publish): `app/build.gradle` has
+      `versionCode 6` / `versionName "6.0"`. Owner originally confirmed the
+      **complete** Play Console app-bundle list - versionCodes 1 through 5 existed
+      across all tracks (production 5/"5.0", internal testing 1/"1.0") - making 6 the
+      correct next value; confirmed present in the built artifacts via `aapt2 dump
+      badging` and the AAB's packaged manifest. **The owner has since confirmed 6/"6.0"
+      is live in production** - this is now a real, shipped version, not just a
+      locally-verified candidate. For the next release, the floor is production's
+      current 6, not the old "highest across all tracks" uncertainty.
 - [ ] `applicationId` (`com.tb.tetrisbrick.game`) and signing identity are unchanged -
       this upload will update the existing listing, not create a new one. Note: **debug**
       builds now use `com.tb.tetrisbrick.game.debug` (an `applicationIdSuffix`, added so
@@ -120,13 +193,27 @@ top of `CLAUDE_PROGRESS.md` for the full detail. Checked items below reflect wha
       hit the ad banner instead and opened an unrelated app - did not get a clean
       capture. Game-over logic is unit-tested and was re-confirmed by code review, but
       not visually observed. Re-attempt manually (not via blind rapid-tap automation).
-- [ ] **Upgrade install** (old APK → new APK on the same device): not performed. The
-      test device's existing install (versionCode 5) is newer than anything buildable
-      from this repo, so a literal old→new upgrade wasn't possible with the artifacts
-      on hand. The migration *logic* is unit-tested
-      (`SharedPreferencesManagerTest.upgradeInstall_...`) against simulated legacy data,
-      which is not the same as a real device-level upgrade install - do this once a
-      real prior-version APK is available.
+- [ ] **Upgrade install** (old APK → new APK on the same device): still **not
+      performed**, explicitly kept pending. Updated status as of 2026-09-23: this repo
+      now builds versionCode 6, which *would* be newer than the versionCode 5 the test
+      device previously had installed - so the versionCode-ordering obstacle noted
+      earlier no longer applies in principle. However, the connected test device
+      currently has **no plain `com.tb.tetrisbrick.game` (release) install at all** -
+      only the separate `com.tb.tetrisbrick.game.debug` package (confirmed via
+      `adb shell pm list packages`, 2026-09-23) - so there is nothing to literally
+      upgrade *from* right now, and this pass deliberately did not install anything
+      (per instruction: no install over an existing app). The migration *logic* remains
+      unit-tested (`SharedPreferencesManagerTest.upgradeInstall_...`) against simulated
+      legacy data, which is not a substitute for a real device-level upgrade install.
+- [ ] **Device QA against the new versionCode 6 build**: **not performed this pass**,
+      explicitly kept pending, per instruction to avoid repeated device QA for
+      unchanged gameplay. Every real-device check above predates the versionCode 6
+      release build (APK/AAB) produced in this pass and was run against the debug
+      package, which carries its own independent versioning and is unaffected by the
+      `versionCode`/`versionName` change. Nothing about gameplay, UI, or persistence
+      changed in this pass, so this is a version-bump/signing verification pass, not a
+      UI-affecting one - but a fresh on-device install of this *exact* release
+      configuration has not been observed.
 - [ ] Small-screen device (only one 1080x2340 device was available this session).
 - [ ] Larger system font scale (device's setting was not changed during this session).
 - [ ] Rotate a piece near a wall, the floor, and next to already-settled blocks - this

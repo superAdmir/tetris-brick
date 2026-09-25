@@ -19,6 +19,7 @@ local.properties
 keystore.properties
 *.keystore
 *.jks
+*.p12
 
 # Real production AdMob IDs - keep locally, never commit (see admob.properties.example)
 admob.properties
