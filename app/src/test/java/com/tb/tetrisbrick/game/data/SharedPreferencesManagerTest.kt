@@ -34,6 +34,22 @@ class SharedPreferencesManagerTest {
     }
 
     @Test
+    fun getBestScore_matchesFirstValue_andReflectsStateBeforeANewPutNewScoreCall() {
+        assertEquals(0, manager.bestScore)
+
+        manager.putNewScore(60)
+        assertEquals(60, manager.bestScore)
+
+        // The caller must read getBestScore() BEFORE calling putNewScore() to compare
+        // against the previous best, not the value it just overwrote - this asserts the
+        // method itself always reflects current persisted state, matching getFirstValue().
+        val previousBest = manager.bestScore
+        manager.putNewScore(45)
+        assertEquals("45 didn't beat the previous best of 60, so bestScore must be unchanged",
+            previousBest, manager.bestScore)
+    }
+
+    @Test
     fun legacyIntOnlyInstall_migratesToDefaultColorKeyAndRetiresLegacyEntry() {
         // Simulate a pre-upgrade install that only ever wrote the old int-based key -
         // exactly what SharedPreferencesManager.setFiguresColor(int) used to do.

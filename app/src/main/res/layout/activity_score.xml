@@ -13,12 +13,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         ads:adSize="BANNER"
-        ads:adUnitId="@string/banner_ad_unit_id"
+        ads:adUnitId="@string/score_banner_ad_unit_id"
         app:layout_constraintBottom_toBottomOf="parent" />
 
     <LinearLayout
         android:id="@+id/llScores"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/shape_scores"
         android:orientation="vertical"
@@ -27,39 +27,108 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5">
+        app:layout_constraintVertical_bias="0.42"
+        app:layout_constraintWidth_max="320dp"
+        app:layout_constraintWidth_percent="0.82">
 
         <TextView
             android:id="@+id/tvScoresTitle"
             style="@style/text_view_style"
+            android:layout_marginBottom="@dimen/margin8dp"
             android:fontFamily="sans-serif-condensed-light"
             android:text="@string/scores"
             android:textColor="@color/colorPrimary"
             android:textSize="@dimen/scoresTitleSize" />
 
-        <TextView
-            android:id="@+id/tvFirstScore"
-            style="@style/text_view_style"
-            android:fontFamily="sans-serif-condensed-light"
-            android:text="@string/initial_score"
-            android:textColor="@color/colorAccent"
-            android:textSize="@dimen/midTextSize"
-            android:textStyle="bold" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/tvSecondScore"
-            style="@style/text_view_style"
-            android:fontFamily="sans-serif-condensed-light"
-            android:text="@string/initial_score"
-            android:textColor="@color/colorOnBackground"
-            android:textSize="@dimen/midTextSize" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-condensed"
+                android:text="@string/rank_first"
+                android:textColor="@color/colorOnSurfaceMuted"
+                android:textSize="@dimen/textSize14" />
 
-        <TextView
-            android:id="@+id/tvThirdScore"
-            style="@style/text_view_style"
-            android:fontFamily="sans-serif-condensed-light"
-            android:text="@string/initial_score"
-            android:textColor="@color/colorOnBackground"
-            android:textSize="@dimen/midTextSize" />
+            <TextView
+                android:id="@+id/tvFirstScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="@string/initial_score"
+                android:textColor="@color/colorAccent"
+                android:textSize="@dimen/midTextSize"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:layout_marginTop="@dimen/margin8dp"
+            android:background="@color/colorDivider" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-condensed"
+                android:text="@string/rank_second"
+                android:textColor="@color/colorOnSurfaceMuted"
+                android:textSize="@dimen/textSize14" />
+
+            <TextView
+                android:id="@+id/tvSecondScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="@string/initial_score"
+                android:textColor="@color/colorOnBackground"
+                android:textSize="@dimen/midTextSize" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:layout_marginTop="@dimen/margin8dp"
+            android:background="@color/colorDivider" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-condensed"
+                android:text="@string/rank_third"
+                android:textColor="@color/colorOnSurfaceMuted"
+                android:textSize="@dimen/textSize14" />
+
+            <TextView
+                android:id="@+id/tvThirdScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="@string/initial_score"
+                android:textColor="@color/colorOnBackground"
+                android:textSize="@dimen/midTextSize" />
+        </LinearLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

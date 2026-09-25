@@ -1,6 +1,5 @@
 package com.tb.tetrisbrick.game.ui.main.views;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -13,7 +12,6 @@ import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.HapticFeedbackConstants;
 import android.view.View;
-import android.widget.Toast;
 
 import com.tb.tetrisbrick.game.BuildConfig;
 import com.tb.tetrisbrick.game.R;
@@ -38,16 +36,27 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import static com.tb.tetrisbrick.game.Values.COUNT_DOWN_INTERVAL;
-import static com.tb.tetrisbrick.game.Values.GAME_OVER_DELAY_IN_MILLIS;
 import static com.tb.tetrisbrick.game.Values.LINE_WIDTH;
 
 public class PlayingAreaView extends View implements OnNetChangedListener, OnPlayingAreaTouch {
+
+    // Purely visual constants for the additive rendering below (block seams, active-piece
+    // highlight, paused scrim) - none of these affect gravity/collision/scoring.
+    private static final float BLOCK_SEAM_STROKE_WIDTH = 2f;
+    private static final float ACTIVE_FIGURE_STROKE_WIDTH = 3f;
+    private static final float ACTIVE_FIGURE_LIGHTEN_FACTOR = 0.35f;
+    private static final int PAUSED_OVERLAY_ALPHA = 190;
 
     private int squareWidth, verticalSquareCount;
     private int screenHeight, screenWidth;
     private int scale;
     private int squaresInRowCount;
     private boolean isTimerRunning, isGameOver;
+
+    // Set once a just-ended game's score has been recorded (see onTopLineHasTrue()), so
+    // cleanup() - which also runs for every other exit path - never records it a second
+    // time. Reset back to false whenever cleanup() runs, ready for the next game.
+    private boolean scoreRecorded;
 
     private Figure currentFigure;
     private FigureType currentFigureType;
@@ -65,7 +74,6 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
     private CountDownTimer timer;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable pendingCreateFigure;
-    private Runnable pendingGameOverFinish;
 
     private Context context;
     private OnTimerStateChangedListener onTimerStateChangedListener;
@@ -104,12 +112,74 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
         paint.setStrokeWidth(LINE_WIDTH);
         drawHorizontalLines(canvas);
         drawVerticalLines(canvas);
-        if (netManager != null && netManager.getStoppedFiguresPaths() != null) {
-            for (Path squarePath : netManager.getStoppedFiguresPaths()) {
-                paint.setColor(getResources().getColor(Utils.resolveColorResId(sharedPreferencesManager.getFiguresColorKey())));
-                canvas.drawPath(squarePath, paint);
-            }
+        drawSettledBlocks(canvas);
+        drawActiveFigure(canvas);
+        if (isPausedMidGame()) drawPausedOverlay(canvas);
+    }
+
+    // Settled cells (which, per NetManager, also include the currently-falling piece's
+    // own cells - they're baked into the same net array) get a flat fill plus a thin
+    // seam stroke per cell so adjacent blocks read as distinct squares instead of one
+    // solid mass. drawActiveFigure() then overpaints just the falling piece's own
+    // outline on top so it's visually distinguishable from what's already settled.
+    private void drawSettledBlocks(Canvas canvas) {
+        if (netManager == null || netManager.getStoppedFiguresPaths() == null) return;
+        int fillColor = getResources().getColor(Utils.resolveColorResId(sharedPreferencesManager.getFiguresColorKey()));
+        int seamColor = getResources().getColor(R.color.colorBackground);
+        for (Path squarePath : netManager.getStoppedFiguresPaths()) {
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(fillColor);
+            canvas.drawPath(squarePath, paint);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(BLOCK_SEAM_STROKE_WIDTH);
+            paint.setColor(seamColor);
+            canvas.drawPath(squarePath, paint);
         }
+    }
+
+    // currentFigure.getPath() is the same per-figure outline PreviewAreaView already
+    // draws for the NEXT preview - reused here, just painted in a lighter tint with a
+    // light stroke so the piece still in play is readable at a glance against whatever
+    // has already settled underneath it.
+    private void drawActiveFigure(Canvas canvas) {
+        if (currentFigure == null || currentFigure.getState() != FigureState.MOVING) return;
+        Path path = currentFigure.getPath();
+        int baseColor = getResources().getColor(Utils.resolveColorResId(sharedPreferencesManager.getFiguresColorKey()));
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(lighten(baseColor, ACTIVE_FIGURE_LIGHTEN_FACTOR));
+        canvas.drawPath(path, paint);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(ACTIVE_FIGURE_STROKE_WIDTH);
+        paint.setColor(getResources().getColor(R.color.colorOnBackground));
+        canvas.drawPath(path, paint);
+    }
+
+    private static int lighten(int color, float factor) {
+        int r = Color.red(color) + (int) ((255 - Color.red(color)) * factor);
+        int g = Color.green(color) + (int) ((255 - Color.green(color)) * factor);
+        int b = Color.blue(color) + (int) ((255 - Color.blue(color)) * factor);
+        return Color.rgb(r, g, b);
+    }
+
+    // True only while a game is genuinely in progress but not advancing: excludes both
+    // "no figure has spawned yet" (currentFigure == null, e.g. during the initial spawn
+    // delay) and game over (isGameOver), so the overlay never flashes at the wrong time.
+    private boolean isPausedMidGame() {
+        return !isGameOver && !isTimerRunning && currentFigure != null;
+    }
+
+    private void drawPausedOverlay(Canvas canvas) {
+        int background = getResources().getColor(R.color.colorBackground);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor((PAUSED_OVERLAY_ALPHA << 24) | (background & 0x00FFFFFF));
+        canvas.drawRect(0, 0, screenWidth, screenHeight, paint);
+
+        paint.setColor(getResources().getColor(R.color.colorOnBackground));
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setTextSize(squareWidth * 0.9f);
+        canvas.drawText(getResources().getString(R.string.paused_text),
+                screenWidth / 2f, screenHeight / 2f, paint);
+        paint.setTextAlign(Paint.Align.LEFT);
     }
 
     @Override
@@ -124,13 +194,22 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
     }
 
     public void cleanup() {
-        sharedPreferencesManager.putNewScore(scoreView.getScore());
+        // Game-over already recorded this game's score itself (see onTopLineHasTrue()),
+        // so skip here to avoid recording the same score twice - see scoreRecorded.
+        if (!scoreRecorded) {
+            sharedPreferencesManager.putNewScore(scoreView.getScore());
+        }
+        scoreRecorded = false;
         cancelTimer();
         if (pendingCreateFigure != null) handler.removeCallbacks(pendingCreateFigure);
-        if (pendingGameOverFinish != null) handler.removeCallbacks(pendingGameOverFinish);
         scoreView.setStartValue();
         netManager = null;
         currentFigure = null;
+        // Restores the same defaults init() sets, since cleanup() now also runs ahead of
+        // an in-place replay (same PlayingAreaView instance) rather than only ever being
+        // followed by the whole Activity being destroyed.
+        isGameOver = false;
+        isTimerRunning = true;
     }
 
     public void setDependencies(ScoreView scoreView, PreviewAreaView previewAreaView, OnTimerStateChangedListener onTimerStateChangedListener) {
@@ -176,6 +255,10 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
         }
         isTimerRunning = !isTimerRunning;
         if (!isGameOver) onTimerStateChangedListener.isTimerRunning(isTimerRunning);
+        // Unlike resuming (where the timer's own onFinish() -> invalidate() cycle takes
+        // over), pausing stops that cycle dead, so nothing would otherwise trigger the
+        // redraw that shows/hides the paused overlay.
+        invalidate();
     }
 
     public void startTimer() {
@@ -409,9 +492,13 @@ public class PlayingAreaView extends View implements OnNetChangedListener, OnPla
         performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
         cancelTimer();
         onTimerStateChangedListener.disableAllControls();
-        Toast.makeText(context, context.getString(R.string.game_over_text), Toast.LENGTH_LONG).show();
-        pendingGameOverFinish = () -> ((Activity) context).finish();
-        handler.postDelayed(pendingGameOverFinish, GAME_OVER_DELAY_IN_MILLIS);
+        int finalScore = scoreView.getScore();
+        // Must be read before putNewScore() below overwrites it - see getBestScore().
+        int previousBest = sharedPreferencesManager.getBestScore();
+        sharedPreferencesManager.putNewScore(finalScore);
+        scoreRecorded = true;
+        boolean isNewRecord = finalScore > previousBest;
+        onTimerStateChangedListener.onGameOver(finalScore, isNewRecord);
     }
 
     @Override

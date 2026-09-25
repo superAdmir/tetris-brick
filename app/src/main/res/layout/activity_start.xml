@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         ads:adSize="BANNER"
-        ads:adUnitId="@string/banner_ad_unit_id"
+        ads:adUnitId="@string/main_banner_ad_unit_id"
         app:layout_constraintBottom_toBottomOf="parent" />
 
     <LinearLayout
@@ -22,9 +22,18 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center_horizontal"
+        android:paddingStart="@dimen/smallMargin"
+        android:paddingEnd="@dimen/smallMargin"
         app:layout_constraintBottom_toTopOf="@id/adView"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5">
+        app:layout_constraintVertical_bias="0.42">
+
+        <com.tb.tetrisbrick.game.ui.start.views.BlockClusterView
+            android:layout_width="96dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="@dimen/margin8dp"
+            android:contentDescription="@string/content_description_game_graphic"
+            android:importantForAccessibility="no" />
 
         <TextView
             android:id="@+id/tvGameTitle"
@@ -34,23 +43,72 @@
             android:textColor="@color/colorOnBackground"
             android:textSize="@dimen/mainTextSize" />
 
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/mainMargin"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin8dp"
+                android:fontFamily="sans-serif-condensed"
+                android:text="@string/best_score_label"
+                android:textColor="@color/colorOnSurfaceMuted"
+                android:textSize="@dimen/textSize14" />
+
+            <TextView
+                android:id="@+id/tvBestScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-condensed"
+                android:textColor="@color/colorAccent"
+                android:textSize="@dimen/textSize22"
+                android:textStyle="bold"
+                tools:text="120" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/bContinueGame"
+            style="@style/main_buttons_style_primary"
+            android:fontFamily="sans-serif-condensed-light"
+            android:text="@string/continue_game"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
         <Button
             android:id="@+id/bStartGame"
             style="@style/main_buttons_style"
             android:fontFamily="sans-serif-condensed-light"
             android:text="@string/new_game" />
 
-        <Button
-            android:id="@+id/bOpenScores"
-            style="@style/main_buttons_style"
-            android:fontFamily="sans-serif-condensed-light"
-            android:text="@string/scores_text" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/bOpenSettings"
-            style="@style/main_buttons_style"
-            android:fontFamily="sans-serif-condensed-light"
-            android:text="@string/settings_text" />
+            <Button
+                android:id="@+id/bOpenScores"
+                style="@style/main_buttons_style"
+                android:layout_width="0dp"
+                android:layout_marginStart="@dimen/margin4dp"
+                android:layout_marginEnd="@dimen/margin4dp"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="@string/scores_text" />
+
+            <Button
+                android:id="@+id/bOpenSettings"
+                style="@style/main_buttons_style"
+                android:layout_width="0dp"
+                android:layout_marginStart="@dimen/margin4dp"
+                android:layout_marginEnd="@dimen/margin4dp"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="@string/settings_text" />
+        </LinearLayout>
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

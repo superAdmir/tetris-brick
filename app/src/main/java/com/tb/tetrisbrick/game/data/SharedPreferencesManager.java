@@ -112,6 +112,13 @@ public class SharedPreferencesManager {
         return preferences.getLong(FIGURE_SPEED_KEY, DEFAULT_SPEED);
     }
 
+    // Int-returning counterpart to getFirstValue(): callers that need to compare a
+    // candidate score against the current best (e.g. "is this a new record?") must read
+    // this BEFORE calling putNewScore(), which overwrites it.
+    public int getBestScore() {
+        return preferences.getInt(FIRST_VALUE_KEY, DEFAULT_VALUE);
+    }
+
     public String getFirstValue() {
         return String.valueOf(preferences.getInt(FIRST_VALUE_KEY, DEFAULT_VALUE));
     }

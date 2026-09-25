@@ -12,6 +12,21 @@
     <string name="new_score_notification_title">New score</string>
     <string name="congrats_sub_title">Congratulations! You have reached a new score.</string>
     <string name="game_over_text">GAME OVER</string>
+    <string name="paused_text">PAUSED</string>
+    <string name="new_record_text">NEW RECORD!</string>
+    <string name="replay_text">REPLAY</string>
+    <string name="home_text">HOME</string>
+    <string name="continue_game">CONTINUE</string>
+    <string name="best_score_label">BEST</string>
+    <string name="empty_score_placeholder">—</string>
+    <string name="discard_saved_game_title">Start a new game?</string>
+    <string name="discard_saved_game_message">This will discard your saved game in progress.</string>
+    <string name="discard_saved_game_confirm">Start new game</string>
+    <string name="cancel_text">Cancel</string>
+    <string name="content_description_game_graphic">Decorative block graphic</string>
+    <string name="rank_first">1ST</string>
+    <string name="rank_second">2ND</string>
+    <string name="rank_third">3RD</string>
 
     <!--settings-->
     <string name="rate_title">Rate on Google Play</string>

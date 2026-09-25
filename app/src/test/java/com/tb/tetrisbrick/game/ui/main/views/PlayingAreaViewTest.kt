@@ -48,11 +48,17 @@ class PlayingAreaViewTest {
     private class RecordingTimerStateListener : OnTimerStateChangedListener {
         var lastIsRunning: Boolean? = null
         var disableAllControlsCalled = false
+        var lastGameOverScore: Int? = null
+        var lastGameOverIsNewRecord: Boolean? = null
         override fun isTimerRunning(isRunning: Boolean) {
             lastIsRunning = isRunning
         }
         override fun disableAllControls() {
             disableAllControlsCalled = true
+        }
+        override fun onGameOver(finalScore: Int, isNewRecord: Boolean) {
+            lastGameOverScore = finalScore
+            lastGameOverIsNewRecord = isNewRecord
         }
     }
 
@@ -232,6 +238,71 @@ class PlayingAreaViewTest {
 
         assertFalse(gameStateStore.hasSavedGame())
         assertTrue(listener.disableAllControlsCalled)
+    }
+
+    // Fresh-install state (all high scores 0) is exactly the scenario that exposes a
+    // double-count bug: calling SharedPreferencesManager.putNewScore() twice with the
+    // same value can insert that same score into multiple rank slots when starting from
+    // low/zero scores. cleanup() runs again after game-over at MainActivity.onDestroy()
+    // (see MainActivity.onDestroy() -> PlayingAreaView.cleanup()) and must not re-record.
+    @Test
+    fun onTopLineHasTrue_recordsScoreExactlyOnce_evenWhenCleanupRunsAfterward() {
+        scoreView.setScore(50)
+
+        view.onTopLineHasTrue()
+        view.cleanup()
+
+        val prefs = context.getSharedPreferences(Values.PREFERENCES_KEY, Context.MODE_PRIVATE)
+        assertEquals(50, prefs.getInt(Values.FIRST_VALUE_KEY, -1))
+        assertEquals(0, prefs.getInt(Values.SECOND_VALUE_KEY, -1))
+        assertEquals(0, prefs.getInt(Values.THIRD_VALUE_KEY, -1))
+    }
+
+    @Test
+    fun onTopLineHasTrue_reportsNewRecordAgainstThePreviousBest_notTheJustUpdatedValue() {
+        val prefs = context.getSharedPreferences(Values.PREFERENCES_KEY, Context.MODE_PRIVATE)
+        prefs.edit().putInt(Values.FIRST_VALUE_KEY, 80).commit()
+        scoreView.setScore(120)
+
+        view.onTopLineHasTrue()
+
+        assertEquals(120, listener.lastGameOverScore)
+        assertEquals(true, listener.lastGameOverIsNewRecord)
+        assertEquals("the score must still be persisted as the new best",
+            120, prefs.getInt(Values.FIRST_VALUE_KEY, -1))
+    }
+
+    @Test
+    fun onTopLineHasTrue_doesNotReportANewRecord_whenScoreDoesNotBeatThePreviousBest() {
+        val prefs = context.getSharedPreferences(Values.PREFERENCES_KEY, Context.MODE_PRIVATE)
+        prefs.edit().putInt(Values.FIRST_VALUE_KEY, 200).commit()
+        scoreView.setScore(90)
+
+        view.onTopLineHasTrue()
+
+        assertEquals(90, listener.lastGameOverScore)
+        assertEquals(false, listener.lastGameOverIsNewRecord)
+    }
+
+    @Test
+    fun cleanup_afterReplay_resetsGameOverAndTimerStateForTheNextGame() {
+        // Mirrors MainActivity's in-place "Replay" flow: onTopLineHasTrue() ends a game,
+        // then startFreshGame() (which calls cleanup()) must leave the view able to run
+        // a brand new game in the SAME instance, not permanently stuck game-over.
+        scoreView.setScore(30)
+        view.onTopLineHasTrue()
+        assertFalse(view.isTimerRunning())
+
+        view.startFreshGame()
+
+        assertFalse("a freshly (re)started game must not be treated as still game-over",
+            isGameOverOf(view))
+    }
+
+    private fun isGameOverOf(view: PlayingAreaView): Boolean {
+        val field = PlayingAreaView::class.java.getDeclaredField("isGameOver")
+        field.isAccessible = true
+        return field.get(view) as Boolean
     }
 
     @Test

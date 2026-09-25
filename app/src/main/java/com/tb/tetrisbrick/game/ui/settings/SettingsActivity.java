@@ -15,6 +15,7 @@ import com.tb.tetrisbrick.game.data.SharedPreferencesManager;
 import com.tb.tetrisbrick.game.databinding.ActivitySettingsBinding;
 import com.tb.tetrisbrick.game.utils.Utils;
 import com.tb.tetrisbrick.game.utils.EdgeToEdgeUtils;
+import com.tb.tetrisbrick.game.utils.ScreenshotMode;
 import com.shawnlin.numberpicker.NumberPicker;
 
 import java.util.Arrays;
@@ -68,7 +69,11 @@ public class SettingsActivity extends AppCompatActivity implements SettingsView 
         findViewById(R.id.tvFast).setOnClickListener(v -> chooseFastSpeed());
         findViewById(R.id.tvVeryFast).setOnClickListener(v -> chooseVeryFastSpeed());
 
-        AdsManager.requestConsentThenLoadBanner(this, binding.adView);
+        if (ScreenshotMode.isActive(this)) {
+            binding.adView.setVisibility(View.GONE);
+        } else {
+            AdsManager.requestConsentThenLoadBanner(this, binding.adView);
+        }
     }
 
     @Override

@@ -12,7 +12,6 @@ public class Values {
     public static final int COUNT_DOWN_INTERVAL = 750;
     public static final long DELAY_IN_MILLIS = 1500;
     public static final long DEBOUNCE_DELAY_IN_MILLIS = 450;
-    public static final long GAME_OVER_DELAY_IN_MILLIS = 4000;
     public static final float LINE_WIDTH = 1f;
 
     public static final String PLAY_MARKET_URL = "https://play.google.com/store/apps/details?id=com.tb.tetrisbrick.game";
