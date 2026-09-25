@@ -14,6 +14,11 @@ import java.util.List;
 
 import static com.tb.tetrisbrick.game.Values.DEV_NAME;
 import static com.tb.tetrisbrick.game.Values.EXTRA_ROWS;
+import static com.tb.tetrisbrick.game.Values.FIGURE_COLOR_J;
+import static com.tb.tetrisbrick.game.Values.FIGURE_COLOR_L;
+import static com.tb.tetrisbrick.game.Values.FIGURE_COLOR_LONG;
+import static com.tb.tetrisbrick.game.Values.FIGURE_COLOR_SQUARE;
+import static com.tb.tetrisbrick.game.Values.FIGURE_COLOR_T;
 import static com.tb.tetrisbrick.game.enums.FigureSpeed.DEFAULT;
 import static com.tb.tetrisbrick.game.enums.FigureSpeed.FAST;
 import static com.tb.tetrisbrick.game.enums.FigureSpeed.SLOW;
@@ -33,31 +38,36 @@ public class Utils {
         return path;
     }
 
-    public static int getViewIdByColor(int color) {
-        int id = 0;
-        switch (color) {
-            case R.color.lFigure:
-                id = R.id.vLFigureColor;
-                break;
-            case R.color.squareFigure:
-                id = R.id.vSquareFigureColor;
-                break;
-            case R.color.longFigure:
-                id = R.id.vLongFigureColor;
-                break;
-            case R.color.zFigure:
-                id = R.id.vZFigureColor;
-                break;
-            case R.color.tFigure:
-                id = R.id.vTFigureColor;
-                break;
-            case R.color.jFigure:
-                id = R.id.vJFigureColor;
-                break;
-            default:
-                break;
+    // Stable-key -> current-build resource ID resolution. Never persist the resource
+    // ID itself (see Values.FIGURE_COLOR_KEY for why); only ever persist the key.
+    public static int resolveColorResId(String colorKey) {
+        if (FIGURE_COLOR_L.equals(colorKey)) {
+            return R.color.lFigure;
+        } else if (FIGURE_COLOR_SQUARE.equals(colorKey)) {
+            return R.color.squareFigure;
+        } else if (FIGURE_COLOR_LONG.equals(colorKey)) {
+            return R.color.longFigure;
+        } else if (FIGURE_COLOR_T.equals(colorKey)) {
+            return R.color.tFigure;
+        } else if (FIGURE_COLOR_J.equals(colorKey)) {
+            return R.color.jFigure;
         }
-        return id;
+        return R.color.zFigure;
+    }
+
+    public static int getViewIdByColorKey(String colorKey) {
+        if (FIGURE_COLOR_L.equals(colorKey)) {
+            return R.id.vLFigureColor;
+        } else if (FIGURE_COLOR_SQUARE.equals(colorKey)) {
+            return R.id.vSquareFigureColor;
+        } else if (FIGURE_COLOR_LONG.equals(colorKey)) {
+            return R.id.vLongFigureColor;
+        } else if (FIGURE_COLOR_T.equals(colorKey)) {
+            return R.id.vTFigureColor;
+        } else if (FIGURE_COLOR_J.equals(colorKey)) {
+            return R.id.vJFigureColor;
+        }
+        return R.id.vZFigureColor;
     }
 
     public static FigureSpeed getFiguresSpeedByMillis(long speedMillis) {

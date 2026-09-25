@@ -12,7 +12,6 @@ public class Values {
     public static final int COUNT_DOWN_INTERVAL = 750;
     public static final long DELAY_IN_MILLIS = 1500;
     public static final long DEBOUNCE_DELAY_IN_MILLIS = 450;
-    public static final long GAME_OVER_DELAY_IN_MILLIS = 4000;
     public static final float LINE_WIDTH = 1f;
 
     public static final String PLAY_MARKET_URL = "https://play.google.com/store/apps/details?id=com.tb.tetrisbrick.game";
@@ -25,8 +24,27 @@ public class Values {
     public static final String SECOND_VALUE_KEY = "second_value";
     public static final String THIRD_VALUE_KEY = "third_value";
     public static final int DEFAULT_VALUE = 0;
-    public static final String FIGURE_COLOR_KEY = "default_color";
-    public static final int DEFAULT_COLOR = R.color.zFigure;
+
+    // v1 stored a raw Android resource ID (R.color.xxx) as the figure color preference,
+    // which is only guaranteed stable within a single build - AAPT2 can renumber
+    // resource IDs across builds (e.g. whenever colors.xml gains/loses/reorders
+    // entries, which this modernization pass did). An old int surviving an app update
+    // could silently resolve to the wrong resource, or a nonexistent one, and crash.
+    // v2 stores a stable string key instead, resolved to the current build's actual
+    // resource ID on every read via Utils.resolveColorResId(). See
+    // SharedPreferencesManager.getFiguresColorKey() for the one-time migration, which
+    // deliberately does not try to reinterpret the old raw int - it can't be trusted to
+    // still mean the same color, so it falls back to the default color key instead.
+    public static final String LEGACY_FIGURE_COLOR_KEY = "default_color";
+    public static final String FIGURE_COLOR_KEY = "default_color_v2";
+    public static final String FIGURE_COLOR_L = "l_figure";
+    public static final String FIGURE_COLOR_SQUARE = "square_figure";
+    public static final String FIGURE_COLOR_LONG = "long_figure";
+    public static final String FIGURE_COLOR_Z = "z_figure";
+    public static final String FIGURE_COLOR_T = "t_figure";
+    public static final String FIGURE_COLOR_J = "j_figure";
+    public static final String DEFAULT_FIGURE_COLOR_KEY = FIGURE_COLOR_Z;
+
     public static final String FIGURE_SPEED_KEY = "default_speed";
     public static final long DEFAULT_SPEED = FigureSpeed.DEFAULT.getFigureSpeedInMillis();
     public static final String ENABLE_HINTS_KEY = "enable_hints_key";
@@ -38,4 +56,17 @@ public class Values {
     public static final int NOTIFICATION_ID = 123;
     public static final String CHANNEL_NAME = "SCORES";
     public static final String SCORE_CHANNEL = NAMESPACE + ".scores";
+
+    /*SAVED GAME (process-death restore)*/
+    public static final int SAVED_GAME_SCHEMA_VERSION = 1;
+    public static final String SAVED_GAME_VERSION_KEY = "saved_game_version";
+    public static final String SAVED_GAME_SCORE_KEY = "saved_game_score";
+    public static final String SAVED_GAME_SQUARES_IN_ROW_KEY = "saved_game_squares_in_row";
+    public static final String SAVED_GAME_NET_ROWS_KEY = "saved_game_net_rows";
+    public static final String SAVED_GAME_NET_COLS_KEY = "saved_game_net_cols";
+    public static final String SAVED_GAME_NET_CELLS_KEY = "saved_game_net_cells";
+    public static final String SAVED_GAME_CURRENT_TYPE_KEY = "saved_game_current_type";
+    public static final String SAVED_GAME_CURRENT_GRID_X_KEY = "saved_game_current_grid_x";
+    public static final String SAVED_GAME_CURRENT_GRID_Y_KEY = "saved_game_current_grid_y";
+    public static final String SAVED_GAME_NEXT_TYPE_KEY = "saved_game_next_type";
 }

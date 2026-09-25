@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="280dp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/shape_dialog_background"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="@dimen/margin16dp">
+
+    <TextView
+        android:id="@+id/tvGameOverTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed"
+        android:text="@string/game_over_text"
+        android:textColor="@color/colorAccent"
+        android:textSize="@dimen/scoresTitleSize"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvNewRecord"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin8dp"
+        android:fontFamily="sans-serif-condensed"
+        android:text="@string/new_record_text"
+        android:textColor="@color/colorPrimary"
+        android:textSize="@dimen/textSize18"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/tvGameOverScoreLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin16dp"
+        android:fontFamily="sans-serif-condensed-light"
+        android:text="@string/score_text"
+        android:textColor="@color/colorOnSurfaceMuted"
+        android:textSize="@dimen/textSize14" />
+
+    <TextView
+        android:id="@+id/tvGameOverScore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed"
+        android:textColor="@color/colorOnBackground"
+        android:textSize="@dimen/scoresTitleSize"
+        android:textStyle="bold"
+        tools:text="120" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin16dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/bHome"
+            style="@style/DialogActionButtonStyle"
+            android:layout_marginEnd="@dimen/margin8dp"
+            android:text="@string/home_text" />
+
+        <Button
+            android:id="@+id/bReplay"
+            style="@style/DialogActionButtonStylePrimary"
+            android:text="@string/replay_text" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,13 +1,26 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
+    <!--
+      Base application theme: dark navy/charcoal with cyan/violet accents.
+      Kept as a distinctly-named base (rather than defining AppTheme directly)
+      so values-v31/styles.xml can add Android 12+ splash-screen items to
+      AppTheme without a self-referencing "parent" cycle - lint (correctly)
+      rejects <style name="AppTheme" parent="@style/AppTheme"> even though
+      AAPT2 itself resolves it fine per-qualifier at build time.
+    -->
+    <style name="AppTheme.Base" parent="Theme.AppCompat.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryDark">@color/colorBackground</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <item name="android:textColorPrimary">@color/colorOnBackground</item>
+        <item name="android:statusBarColor">@color/colorBackground</item>
+        <item name="android:navigationBarColor">@color/colorBackground</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowAnimationStyle">@style/CustomActivityAnimation</item>
     </style>
+
+    <style name="AppTheme" parent="AppTheme.Base" />
 
     <style name="CustomActivityAnimation" parent="@android:style/Animation.Activity">
         <item name="android:activityOpenEnterAnimation">@anim/slide_in_right</item>
@@ -26,22 +39,13 @@
         <item name="android:layout_marginStart">@dimen/maxMargin</item>
         <item name="android:layout_marginEnd">@dimen/maxMargin</item>
         <item name="android:background">@drawable/button_shape</item>
-        <item name="android:textColor">@color/colorPrimaryDark</item>
+        <item name="android:textColor">@color/colorPrimary</item>
         <item name="android:textSize">@dimen/buttonsStartSize</item>
         <item name="android:layout_marginTop">@dimen/mainMargin</item>
         <item name="android:layout_marginBottom">@dimen/mainMargin</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:padding">@dimen/ButtonsPadding</item>
-    </style>
-
-    <style name="linear_layout_style">
-        <item name="android:orientation">vertical</item>
-        <item name="android:layout_margin">2dp</item>
-        <item name="android:background">@drawable/shape_start_activity</item>
-        <item name="android:gravity">center_horizontal</item>
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">match_parent</item>
     </style>
 
     <style name="text_view_style">
@@ -98,6 +102,45 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1px</item>
         <item name="android:background">@color/colorPrimaryDark</item>
+    </style>
+
+    <!-- Filled variant of main_buttons_style for a screen's single primary action
+         (Home's "Continue" when a saved game exists, otherwise "New Game"). -->
+    <style name="main_buttons_style_primary" parent="main_buttons_style">
+        <item name="android:background">@drawable/button_shape_primary</item>
+        <item name="android:textColor">@color/colorOnAccent</item>
+    </style>
+
+    <style name="DialogActionButtonStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@drawable/button_shape</item>
+        <item name="android:fontFamily">sans-serif-condensed-light</item>
+        <item name="android:padding">@dimen/ButtonsPadding</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:textSize">@dimen/buttonsStartSize</item>
+    </style>
+
+    <style name="DialogActionButtonStylePrimary" parent="DialogActionButtonStyle">
+        <item name="android:background">@drawable/button_shape_primary</item>
+        <item name="android:textColor">@color/colorOnAccent</item>
+    </style>
+
+    <!-- Dark-themed AlertDialog (title/message/buttons) matching the app's own surfaces,
+         for the small confirm dialogs (e.g. discarding a saved game) that don't need a
+         fully custom layout. -->
+    <style name="AppAlertDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="colorAccent">@color/colorPrimary</item>
+        <item name="android:windowBackground">@drawable/shape_dialog_background</item>
+        <item name="android:textColorPrimary">@color/colorOnBackground</item>
+        <item name="android:textColor">@color/colorOnBackground</item>
+        <item name="buttonBarPositiveButtonStyle">@style/AppAlertDialogButtonStyle</item>
+        <item name="buttonBarNegativeButtonStyle">@style/AppAlertDialogButtonStyle</item>
+    </style>
+
+    <style name="AppAlertDialogButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">@color/colorPrimary</item>
     </style>
 
 </resources>

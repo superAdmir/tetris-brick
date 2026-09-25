@@ -5,7 +5,13 @@ import com.tb.tetrisbrick.game.data.SharedPreferencesManager;
 import com.tb.tetrisbrick.game.enums.FigureSpeed;
 import com.tb.tetrisbrick.game.utils.Utils;
 
-import static com.tb.tetrisbrick.game.Values.DEFAULT_COLOR;
+import static com.tb.tetrisbrick.game.Values.DEFAULT_FIGURE_COLOR_KEY;
+import static com.tb.tetrisbrick.game.Values.FIGURE_COLOR_J;
+import static com.tb.tetrisbrick.game.Values.FIGURE_COLOR_L;
+import static com.tb.tetrisbrick.game.Values.FIGURE_COLOR_LONG;
+import static com.tb.tetrisbrick.game.Values.FIGURE_COLOR_SQUARE;
+import static com.tb.tetrisbrick.game.Values.FIGURE_COLOR_T;
+import static com.tb.tetrisbrick.game.Values.FIGURE_COLOR_Z;
 import static com.tb.tetrisbrick.game.enums.FigureSpeed.DEFAULT;
 import static com.tb.tetrisbrick.game.enums.FigureSpeed.FAST;
 import static com.tb.tetrisbrick.game.enums.FigureSpeed.SLOW;
@@ -25,7 +31,8 @@ class SettingsPresenter {
     void setValues() {
         FigureSpeed figureSpeed = Utils.getFiguresSpeedByMillis(sharedPreferencesManager.getFiguresSpeed());
         if (settingsView != null) {
-            settingsView.markChosenColor(DEFAULT_COLOR, Utils.getViewIdByColor(sharedPreferencesManager.getFiguresColor()));
+            String chosenColorKey = sharedPreferencesManager.getFiguresColorKey();
+            settingsView.markChosenColor(DEFAULT_FIGURE_COLOR_KEY, Utils.getViewIdByColorKey(chosenColorKey));
             settingsView.setSquaresCountInRow(sharedPreferencesManager.getSquaresCountInRow());
             settingsView.setSpeedTitle(figureSpeed.getSpeedItemId());
             settingsView.setVerticalHintsChecked(sharedPreferencesManager.isHintsEnabled());
@@ -37,46 +44,31 @@ class SettingsPresenter {
     }
 
     void getEvent(int id) {
-        switch (id) {
-            case R.id.vLFigureColor:
-                manageColorPicking(R.color.lFigure, id);
-                break;
-            case R.id.vSquareFigureColor:
-                manageColorPicking(R.color.squareFigure, id);
-                break;
-            case R.id.vLongFigureColor:
-                manageColorPicking(R.color.longFigure, id);
-                break;
-            case R.id.vZFigureColor:
-                manageColorPicking(R.color.zFigure, id);
-                break;
-            case R.id.vTFigureColor:
-                manageColorPicking(R.color.tFigure, id);
-                break;
-            case R.id.vJFigureColor:
-                manageColorPicking(R.color.jFigure, id);
-                break;
-            case R.id.sEnableHints:
-                boolean isEnabled = sharedPreferencesManager.isHintsEnabled();
-                sharedPreferencesManager.setHintsEnabled(!isEnabled);
-                break;
-            case R.id.tvVeryFast:
-                manageSpeedPicking(VERY_FAST.getFigureSpeedInMillis(), id);
-                break;
-            case R.id.tvFast:
-                manageSpeedPicking(FAST.getFigureSpeedInMillis(), id);
-                break;
-            case R.id.tvDefault:
-                manageSpeedPicking(DEFAULT.getFigureSpeedInMillis(), id);
-                break;
-            case R.id.tvSlow:
-                manageSpeedPicking(SLOW.getFigureSpeedInMillis(), id);
-                break;
-            case R.id.tvVerySlow:
-                manageSpeedPicking(VERY_SLOW.getFigureSpeedInMillis(), id);
-                break;
-            default:
-                break;
+        if (id == R.id.vLFigureColor) {
+            manageColorPicking(FIGURE_COLOR_L, id);
+        } else if (id == R.id.vSquareFigureColor) {
+            manageColorPicking(FIGURE_COLOR_SQUARE, id);
+        } else if (id == R.id.vLongFigureColor) {
+            manageColorPicking(FIGURE_COLOR_LONG, id);
+        } else if (id == R.id.vZFigureColor) {
+            manageColorPicking(FIGURE_COLOR_Z, id);
+        } else if (id == R.id.vTFigureColor) {
+            manageColorPicking(FIGURE_COLOR_T, id);
+        } else if (id == R.id.vJFigureColor) {
+            manageColorPicking(FIGURE_COLOR_J, id);
+        } else if (id == R.id.sEnableHints) {
+            boolean isEnabled = sharedPreferencesManager.isHintsEnabled();
+            sharedPreferencesManager.setHintsEnabled(!isEnabled);
+        } else if (id == R.id.tvVeryFast) {
+            manageSpeedPicking(VERY_FAST.getFigureSpeedInMillis(), id);
+        } else if (id == R.id.tvFast) {
+            manageSpeedPicking(FAST.getFigureSpeedInMillis(), id);
+        } else if (id == R.id.tvDefault) {
+            manageSpeedPicking(DEFAULT.getFigureSpeedInMillis(), id);
+        } else if (id == R.id.tvSlow) {
+            manageSpeedPicking(SLOW.getFigureSpeedInMillis(), id);
+        } else if (id == R.id.tvVerySlow) {
+            manageSpeedPicking(VERY_SLOW.getFigureSpeedInMillis(), id);
         }
     }
 
@@ -85,9 +77,9 @@ class SettingsPresenter {
         settingsView.setSpeedTitle(newItemId);
     }
 
-    private void manageColorPicking(int newColor, int newItemId) {
-        int oldColor = sharedPreferencesManager.getFiguresColor();
-        sharedPreferencesManager.setFiguresColor(newColor);
-        settingsView.markChosenColor(oldColor, newItemId);
+    private void manageColorPicking(String newColorKey, int newItemId) {
+        String oldColorKey = sharedPreferencesManager.getFiguresColorKey();
+        sharedPreferencesManager.setFiguresColor(newColorKey);
+        settingsView.markChosenColor(oldColorKey, newItemId);
     }
 }

@@ -1,0 +1,25 @@
+# Copy this file to admob.properties (gitignored, never commit it) and fill in
+# your real production AdMob IDs from the AdMob console before a monetized
+# Play release. Until this file exists (or is incomplete), release builds fail
+# fast with a message naming exactly which values are still missing - see
+# app/build.gradle and CLAUDE_PROGRESS.md. Debug builds always use Google's
+# official test IDs regardless of this file.
+
+# The App ID (identifies the app itself) is a different Google-issued
+# identifier from any ad-unit ID below (each identifies one placement) and can
+# NOT be derived from one - find it in AdMob console under Apps > (this app) >
+# App settings.
+admobAppId=ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY
+
+# One banner placement per screen - not a single shared banner. Property
+# names must match exactly; app/build.gradle reads these specific keys.
+tbgMainBanner=ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY
+tbgGameBanner=ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY
+tbgScoreBanner=ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY
+tbgSettingsBanner=ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY
+
+# Local release-build testing only (signing/R8/etc, not for distribution):
+# uncomment to opt in to Google's sample ad IDs in a release build even
+# though the production values above are missing/incomplete. Never set this
+# for a build meant to ship.
+# useTestAdsForLocalRelease=true

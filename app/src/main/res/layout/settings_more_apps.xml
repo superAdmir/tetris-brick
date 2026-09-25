@@ -29,6 +29,6 @@
         android:gravity="center_vertical"
         android:paddingStart="@dimen/margin8dp"
         android:text="@string/more_apps_title"
-        android:textColor="@color/colorPrimaryDark"
+        android:textColor="@color/colorOnBackground"
         android:textSize="@dimen/settingsTextSize"/>
 </FrameLayout>

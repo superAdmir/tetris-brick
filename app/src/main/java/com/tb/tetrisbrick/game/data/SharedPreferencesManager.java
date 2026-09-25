@@ -7,7 +7,7 @@ import android.content.SharedPreferences;
 import com.tb.tetrisbrick.game.utils.NotificationUtil;
 
 import static android.content.Context.MODE_PRIVATE;
-import static com.tb.tetrisbrick.game.Values.DEFAULT_COLOR;
+import static com.tb.tetrisbrick.game.Values.DEFAULT_FIGURE_COLOR_KEY;
 import static com.tb.tetrisbrick.game.Values.DEFAULT_SPEED;
 import static com.tb.tetrisbrick.game.Values.SQUARES_COUNT_IN_ROW;
 import static com.tb.tetrisbrick.game.Values.DEFAULT_VALUE;
@@ -16,6 +16,7 @@ import static com.tb.tetrisbrick.game.Values.ENABLE_HINTS_KEY;
 import static com.tb.tetrisbrick.game.Values.FIGURE_COLOR_KEY;
 import static com.tb.tetrisbrick.game.Values.FIGURE_SPEED_KEY;
 import static com.tb.tetrisbrick.game.Values.FIRST_VALUE_KEY;
+import static com.tb.tetrisbrick.game.Values.LEGACY_FIGURE_COLOR_KEY;
 import static com.tb.tetrisbrick.game.Values.PREFERENCES_KEY;
 import static com.tb.tetrisbrick.game.Values.SECOND_VALUE_KEY;
 import static com.tb.tetrisbrick.game.Values.SQUARES_COUNT_IN_ROW_KEY;
@@ -54,15 +55,27 @@ public class SharedPreferencesManager {
         editor.commit();
     }
 
-    public void setFiguresColor(int color) {
+    public void setFiguresColor(String colorKey) {
         this.editor = preferences.edit();
-        editor.putInt(FIGURE_COLOR_KEY, color);
+        editor.putString(FIGURE_COLOR_KEY, colorKey);
         editor.apply();
         editor.commit();
     }
 
-    public int getFiguresColor() {
-        return preferences.getInt(FIGURE_COLOR_KEY, DEFAULT_COLOR);
+    // v1 stored a raw resource ID here (see Values.FIGURE_COLOR_KEY); that value can't
+    // be trusted to still identify the same color after an update, so on first read we
+    // migrate to the default color key rather than attempting to reinterpret it, and
+    // retire the old entry so it's never touched again.
+    public String getFiguresColorKey() {
+        if (!preferences.contains(FIGURE_COLOR_KEY) && preferences.contains(LEGACY_FIGURE_COLOR_KEY)) {
+            this.editor = preferences.edit();
+            editor.putString(FIGURE_COLOR_KEY, DEFAULT_FIGURE_COLOR_KEY);
+            editor.remove(LEGACY_FIGURE_COLOR_KEY);
+            editor.apply();
+            editor.commit();
+            return DEFAULT_FIGURE_COLOR_KEY;
+        }
+        return preferences.getString(FIGURE_COLOR_KEY, DEFAULT_FIGURE_COLOR_KEY);
     }
 
     public void setSquaresCountInRow(int count) {
@@ -97,6 +110,13 @@ public class SharedPreferencesManager {
 
     public long getFiguresSpeed() {
         return preferences.getLong(FIGURE_SPEED_KEY, DEFAULT_SPEED);
+    }
+
+    // Int-returning counterpart to getFirstValue(): callers that need to compare a
+    // candidate score against the current best (e.g. "is this a new record?") must read
+    // this BEFORE calling putNewScore(), which overwrites it.
+    public int getBestScore() {
+        return preferences.getInt(FIRST_VALUE_KEY, DEFAULT_VALUE);
     }
 
     public String getFirstValue() {

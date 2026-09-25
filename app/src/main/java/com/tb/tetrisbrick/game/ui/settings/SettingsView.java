@@ -2,7 +2,7 @@ package com.tb.tetrisbrick.game.ui.settings;
 
 interface SettingsView {
 
-    void markChosenColor(int oldColor, int newItemId);
+    void markChosenColor(String oldColorKey, int newItemId);
 
     void setSpeedTitle(int newItemId);
 

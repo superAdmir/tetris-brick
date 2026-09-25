@@ -74,6 +74,56 @@ public class FigureFactory {
         }
     }
 
+    // For restoring a saved game: places a figure at an exact grid position with no
+    // adjustment. Unlike the getFigure() overload below (which assumes `point` is a
+    // *pre-rotation* figure's position and shifts it to line up the new shape's
+    // bounding box for a rotation transition), this constructs the figure exactly where
+    // it was saved - the net snapshot already has its cells at that same position.
+    public static Figure getFigureAtGridPosition(FigureType figureType, int squareWidth, int scale, Context context, Point pointOnScreen) {
+        switch (figureType) {
+            case S_FIGURE:
+                return new SFigure(squareWidth, scale, context, pointOnScreen);
+            case Z_FIGURE:
+                return new ZFigure(squareWidth, scale, context, pointOnScreen);
+            case S_SECOND_FIGURE:
+                return new SSecondFigure(squareWidth, scale, context, pointOnScreen);
+            case Z_SECOND_FIGURE:
+                return new ZSecondFigure(squareWidth, scale, context, pointOnScreen);
+            case L_FIGURE:
+                return new LFigure(squareWidth, scale, context, pointOnScreen);
+            case L_FOURTH_FIGURE:
+                return new LFourthFigure(squareWidth, scale, context, pointOnScreen);
+            case L_SECOND_FIGURE:
+                return new LSecondFigure(squareWidth, scale, context, pointOnScreen);
+            case L_THIRD_FIGURE:
+                return new LThirdFigure(squareWidth, scale, context, pointOnScreen);
+            case J_FIGURE:
+                return new JFigure(squareWidth, scale, context, pointOnScreen);
+            case J_SECOND_FIGURE:
+                return new JSecondFigure(squareWidth, scale, context, pointOnScreen);
+            case J_FOURTH_FIGURE:
+                return new JFourthFigure(squareWidth, scale, context, pointOnScreen);
+            case J_THIRD_FIGURE:
+                return new JThirdFigure(squareWidth, scale, context, pointOnScreen);
+            case SQUARE_FIGURE:
+                return new SquareFigure(squareWidth, scale, context, pointOnScreen);
+            case LONG_SECOND_FIGURE:
+                return new LongSecondFigure(squareWidth, scale, context, pointOnScreen);
+            case LONG_FIGURE:
+                return new LongFigure(squareWidth, scale, context, pointOnScreen);
+            case T_FIGURE:
+                return new TFigure(squareWidth, scale, context, pointOnScreen);
+            case T_SECOND_FIGURE:
+                return new TSecondFigure(squareWidth, scale, context, pointOnScreen);
+            case T_THIRD_FIGURE:
+                return new TThirdFigure(squareWidth, scale, context, pointOnScreen);
+            case T_FOURTH_FIGURE:
+                return new TFourthFigure(squareWidth, scale, context, pointOnScreen);
+            default:
+                return null;
+        }
+    }
+
     public static Figure getFigure(FigureType figureType, int widthSquare, int scale, Context context, Point point) {
         switch (figureType) {
             case S_FIGURE:

@@ -59,6 +59,22 @@ public class NetManager {
         return net[0].length;
     }
 
+    // For persisting/restoring an in-progress game. A restored net already has the
+    // active figure's cells baked in (figures are drawn directly into the net, same as
+    // settled blocks), so restoring it plus calling initFigure() with a matching figure
+    // is enough to resume - see GameStateStore.
+    public boolean[][] getNetSnapshot() {
+        boolean[][] snapshot = new boolean[net.length][net[0].length];
+        for (int i = 0; i < net.length; i++) {
+            System.arraycopy(net[i], 0, snapshot[i], 0, net[i].length);
+        }
+        return snapshot;
+    }
+
+    public void restoreNet(boolean[][] snapshot) {
+        this.net = snapshot;
+    }
+
     public void initFigure(Figure figure) {
         this.figure = figure;
         this.zeroNet = new boolean[figure.getHeightInSquare()][1];
@@ -66,13 +82,40 @@ public class NetManager {
     }
 
     public boolean canRotate(Figure rotatedFigure) {
-        boolean result = false;
-        if (rotatedFigure.pointInNet.x + rotatedFigure.getWidthInSquare() <= horizontalSquaresCount
-                && rotatedFigure.pointInNet.y + rotatedFigure.getHeightInSquare() < verticalSquaresCount
-                && isNetFreeToMoveDown()) {
-            result = true;
+        if (rotatedFigure.pointInNet.x < 0
+                || rotatedFigure.pointInNet.x + rotatedFigure.getWidthInSquare() > horizontalSquaresCount
+                || rotatedFigure.pointInNet.y < 0
+                || rotatedFigure.pointInNet.y + rotatedFigure.getHeightInSquare() > net.length) {
+            return false;
         }
-        return result;
+        // The current figure's own cells are still marked true in `net`. Temporarily
+        // erase them so the destination check below only sees already-settled blocks,
+        // then restore them - actually committing a rotation is initRotatedFigure()'s job.
+        eraseFigureFromNet();
+        boolean destinationFree = isDestinationFree(rotatedFigure);
+        copyMaskToNet();
+        return destinationFree;
+    }
+
+    private void eraseFigureFromNet() {
+        for (int i = 0; i < figure.figureMask.length; i++) {
+            int startHorizontalPos = getStartHorizontalPosition(figure.figureMask[i]);
+            int endPosition = getEndHorizontalPosition(figure.figureMask[i]);
+            for (int j = startHorizontalPos; j < startHorizontalPos + endPosition; j++) {
+                net[figure.pointInNet.y + i][figure.pointInNet.x + j] = false;
+            }
+        }
+    }
+
+    private boolean isDestinationFree(Figure candidate) {
+        for (int i = 0; i < candidate.figureMask.length; i++) {
+            for (int j = 0; j < candidate.figureMask[i].length; j++) {
+                if (candidate.figureMask[i][j] && net[candidate.pointInNet.y + i][candidate.pointInNet.x + j]) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public void resetMaskBeforeMoveWithFalse() {
@@ -214,21 +257,6 @@ public class NetManager {
         return result;
     }
 
-    private void levelDownNet(int level, int rowsCount) {
-        boolean[][] tmpNet = new boolean[verticalSquaresCount + EXTRA_ROWS][horizontalSquaresCount];
-        for (int i = 0; i < net.length; i++) {
-            System.arraycopy(net[i], 0, tmpNet[i], 0, net[i].length);
-        }
-        for (int i = 0; i <= net.length - level; i++) {
-            for (int j = 0; j < net[0].length; j++) {
-                net[i][j] = false;
-            }
-        }
-        for (int i = 0; i < net.length - level; i++) {
-            System.arraycopy(tmpNet[i], 0, net[i + rowsCount], 0, tmpNet[i].length);
-        }
-    }
-
     private boolean isHorizontalLineTrue(boolean[] booleans) {
         boolean result = false;
         int j = 0;
@@ -294,17 +322,23 @@ public class NetManager {
     }
 
     public void checkBottomLine() {
-        int skippedRows = 0;
-        int rowsCount = 0;
-        for (int i = verticalSquaresCount + EXTRA_ROWS - 1; i > 0; i--) {
+        // Compact from the bottom up: keep every non-full row (shifting it down to fill
+        // whatever was cleared beneath it), drop every full row. This handles any mix of
+        // full rows correctly, including rows that aren't adjacent to each other.
+        boolean[][] compacted = new boolean[net.length][horizontalSquaresCount];
+        int writeRow = net.length - 1;
+        int rowsCleared = 0;
+        for (int i = net.length - 1; i >= 0; i--) {
             if (isHorizontalLineTrue(net[i])) {
-                rowsCount++;
-                skippedRows = verticalSquaresCount + EXTRA_ROWS - i;
+                rowsCleared++;
+            } else {
+                System.arraycopy(net[i], 0, compacted[writeRow], 0, horizontalSquaresCount);
+                writeRow--;
             }
         }
-        if (skippedRows != 0) {
-            levelDownNet(skippedRows, rowsCount);
-            combo = rowsCount;
+        if (rowsCleared != 0) {
+            net = compacted;
+            combo = rowsCleared;
             onNetChangedListener.onBottomLineIsTrue();
         }
     }

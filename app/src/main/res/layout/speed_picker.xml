@@ -5,7 +5,6 @@
     android:id="@+id/clSpeedPicker"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
     android:padding="@dimen/minPadding"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"

@@ -1,0 +1,25 @@
+*.iml
+.gradle/
+.vscode/
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Signing material - keep locally, never commit
+keystore.properties
+*.keystore
+*.jks
+*.p12
+
+# Real production AdMob IDs - keep locally, never commit (see admob.properties.example)
+admob.properties

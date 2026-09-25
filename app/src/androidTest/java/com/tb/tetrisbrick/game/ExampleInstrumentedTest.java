@@ -1,13 +1,14 @@
 package com.tb.tetrisbrick.game;
 
 import android.content.Context;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.runner.AndroidJUnit4;
+
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Instrumentation test, which will execute on an Android device.
@@ -17,10 +18,13 @@ import static junit.framework.Assert.assertEquals;
 @RunWith(AndroidJUnit4.class)
 public class ExampleInstrumentedTest {
     @Test
-    public void useAppContext() throws Exception {
-        // Context of the app under test.
-        Context appContext = InstrumentationRegistry.getTargetContext();
+    public void useAppContext() {
+        Context appContext = ApplicationProvider.getApplicationContext();
 
-        assertEquals("com.tb.tetrisbrick.game", appContext.getPackageName());
+        // Not a hardcoded literal: debug builds carry an applicationIdSuffix
+        // (com.tb.tetrisbrick.game.debug) so they can install alongside a release
+        // build without conflicting - BuildConfig.APPLICATION_ID always matches
+        // whatever variant this test is actually compiled/running as.
+        assertEquals(BuildConfig.APPLICATION_ID, appContext.getPackageName());
     }
 }
