@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+      Android 12+ (API 31+) only: configures the OS-managed cold-start splash
+      screen so it matches the app instead of the platform default (white
+      background + whatever launcher icon is set). Pure platform attributes,
+      no androidx.core:core-splashscreen dependency, no extra Activity, no
+      artificial delay - the system dismisses it automatically as soon as the
+      first frame is drawn.
+
+      android:windowSplashScreenIconBackgroundColor is deliberately omitted:
+      the foreground's cyan/violet blocks already have strong contrast
+      directly against the navy window background, so no separate icon disc
+      is needed.
+
+      windowSplashScreenAnimatedIcon deliberately points at the dedicated
+      @drawable/ic_splash_icon, NOT @drawable/ic_launcher_foreground - the
+      debug build overrides the latter with a small marker dot (see
+      app/src/debug/res/drawable/ic_launcher_foreground.xml) for home-screen
+      identification, and that override must never leak into the splash
+      screen. ic_splash_icon has no debug-variant override and never will.
+
+      For API 24-30 there is no system splash screen API; AppTheme's own
+      android:windowBackground (already colorBackground) is shown as the
+      starting window before the first frame, giving the same dark
+      appearance without any extra configuration.
+    -->
+    <style name="AppTheme" parent="AppTheme.Base">
+        <item name="android:windowSplashScreenBackground">@color/colorBackground</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_icon</item>
+    </style>
+
+</resources>

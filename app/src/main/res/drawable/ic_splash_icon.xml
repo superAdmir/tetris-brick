@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Dedicated splash-screen icon: identical geometry to ic_launcher_foreground
+  (the core logo mark, reused deliberately), but kept as its own resource
+  with NO debug-variant override, ever. This exists specifically so the
+  debug launcher-icon marker (see app/src/debug/res/drawable/
+  ic_launcher_foreground.xml) can never leak into the Android 12+ system
+  splash screen - values-v31/styles.xml's windowSplashScreenAnimatedIcon
+  references this file, not ic_launcher_foreground, precisely to keep those
+  two concerns (launcher identification vs. splash branding) independent.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#22D3EE"
+        android:pathData="M27,34 H37 A4,4 0 0 1 41,38 V48 A4,4 0 0 1 37,52 H27 A4,4 0 0 1 23,48 V38 A4,4 0 0 1 27,34 Z" />
+    <path
+        android:fillColor="#A78BFA"
+        android:pathData="M49,34 H59 A4,4 0 0 1 63,38 V48 A4,4 0 0 1 59,52 H49 A4,4 0 0 1 45,48 V38 A4,4 0 0 1 49,34 Z" />
+    <path
+        android:fillColor="#22D3EE"
+        android:pathData="M49,56 H59 A4,4 0 0 1 63,60 V70 A4,4 0 0 1 59,74 H49 A4,4 0 0 1 45,70 V60 A4,4 0 0 1 49,56 Z" />
+    <path
+        android:fillColor="#22D3EE"
+        android:pathData="M71,56 H81 A4,4 0 0 1 85,60 V70 A4,4 0 0 1 81,74 H71 A4,4 0 0 1 67,70 V60 A4,4 0 0 1 71,56 Z" />
+</vector>
