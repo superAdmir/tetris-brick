@@ -2,6 +2,33 @@
 
 Reusable handoff doc. Keep this current so a new session can pick up immediately.
 
+## ⚠️ git hazard: back up local gitignored config before checking out an old branch
+
+**Before running `git checkout <branch>` (or any ref switch/merge/reset), check whether
+that target still *tracks* a file your current branch treats as local-only/gitignored
+- e.g. `keystore.properties`, `admob.properties`, `local.properties`. If it does,
+back up the local file's content first**, because git's "don't clobber uncommitted
+work" protection does **not** apply to ignored files: a target branch/commit that
+tracks a path will silently overwrite (or, on a later fast-forward, delete) whatever
+ignored file already sits at that path, with no warning and no error - `git status`
+looks completely clean throughout, because an ignored file was never "uncommitted work"
+as far as git status is concerned.
+
+**This actually happened in this repo** (2026-09-25): `main` predates
+`modernize-2026`'s `1e46d15` commit (which stopped tracking `keystore.properties`), so
+old `main` still tracked it with stale content. Running `git checkout main` (to
+fast-forward and verify the just-merged PR) silently overwrote the real, working,
+gitignored `keystore.properties` - which pointed at the newly-recovered signing
+keystore - with that old tracked content, and the subsequent `git merge --ff-only`
+deleted it outright once applying the merged tree (which also no longer tracks the
+file). The keystore file itself, its certificate, and the local helper script that
+writes `keystore.properties` were never touched and remained correct throughout - only
+the small local pointer file was lost, recoverable by re-running that helper with the
+same (unchanged) keystore password. Still, it shouldn't have happened, and the fix is
+procedural, not code: **check `git ls-tree <target-ref> -- <path>` for every
+gitignored local config file before switching refs**, and copy it somewhere safe first
+if the target tracks it.
+
 ## Store-artwork screenshots + debug-only "screenshot mode" (2026-09-25)
 
 Prepared `~/Desktop/tetris-brick-store-assets.zip` (6 fresh device screenshots at
