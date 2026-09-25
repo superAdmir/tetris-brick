@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         ads:adSize="BANNER"
-        ads:adUnitId="@string/banner_ad_unit_id"
+        ads:adUnitId="@string/settings_banner_ad_unit_id"
         app:layout_constraintBottom_toBottomOf="parent" />
 
     <ScrollView

@@ -9,15 +9,18 @@ if (hasSigningConfig) {
 }
 
 // Google's official sample/test AdMob IDs (https://developers.google.com/admob/android/test-ads).
-// Safe to ship: they never serve real ads or earn revenue. Debug builds always use these.
+// Safe to ship: they never serve real ads or earn revenue. Debug builds always use
+// this same test banner ID for all four placements below - Google's test ad units are
+// placement-agnostic dummy IDs, not meant to be varied per screen.
 def testAdmobAppId = "ca-app-pub-3940256099942544~3347511713"
 def testBannerAdUnitId = "ca-app-pub-3940256099942544/6300978111"
 
 // Release builds must supply real production IDs via admob.properties (gitignored,
 // never committed - see admob.properties.example). Unlike debug, release does NOT
-// silently fall back to the sample IDs: a release build with no/incomplete/sample-value
-// config fails with an actionable message, so it's impossible to accidentally ship (or
-// even locally sideload) a "release" build that's secretly still using test ad IDs.
+// silently fall back to the sample IDs: a release build with missing/incomplete/
+// sample-value config fails with an actionable message naming exactly which values
+// are still missing, so it's impossible to accidentally ship (or even locally
+// sideload) a "release" build that's secretly still using test ad IDs.
 //
 // The one sanctioned exception is local release-build testing (checking R8/minification
 // behavior, signing, etc. without having real AdMob IDs yet): set
@@ -30,17 +33,34 @@ if (admobPropertiesFile.exists()) {
     admobPropertiesFile.withInputStream { admobProperties.load(it) }
 }
 def allowTestAdsInRelease = admobProperties.getProperty("useTestAdsForLocalRelease", "false").toBoolean()
-def configuredAdmobAppId = admobProperties.getProperty("admobAppId")
-def configuredBannerAdUnitId = admobProperties.getProperty("bannerAdUnitId")
-def hasProductionAdmobConfig = configuredAdmobAppId != null && configuredBannerAdUnitId != null
-        && configuredAdmobAppId != testAdmobAppId && configuredBannerAdUnitId != testBannerAdUnitId
 
-// Gradle configures every buildType block regardless of which tasks are actually
-// requested (e.g. even a plain `assembleDebug` still evaluates the `release` block
-// below), so these must never be null - the actual enforcement is the taskGraph check
-// further down, which only fires when a release task is genuinely being built.
-def releaseAdmobAppId = hasProductionAdmobConfig ? configuredAdmobAppId : testAdmobAppId
-def releaseBannerAdUnitId = hasProductionAdmobConfig ? configuredBannerAdUnitId : testBannerAdUnitId
+// The AdMob App ID is a distinct Google-issued identifier from any ad-unit ID (it
+// identifies the *app*, not a placement) and can never be derived from one - it must
+// be supplied here directly once available. Until then this stays unset and release
+// validation below stays blocked specifically on this field, even if every banner
+// below is fully configured.
+def configuredAdmobAppId = admobProperties.getProperty("admobAppId")
+def hasProductionAdmobAppId = configuredAdmobAppId != null && configuredAdmobAppId != testAdmobAppId
+
+// One banner placement per screen, not a single shared banner. Property names match
+// exactly what was supplied for production use.
+def bannerPlacements = [
+        [property: "tbgMainBanner", resName: "main_banner_ad_unit_id", label: "Home/start screen banner (tbgMainBanner)"],
+        [property: "tbgGameBanner", resName: "game_banner_ad_unit_id", label: "Gameplay screen banner (tbgGameBanner)"],
+        [property: "tbgScoreBanner", resName: "score_banner_ad_unit_id", label: "Scores screen banner (tbgScoreBanner)"],
+        [property: "tbgSettingsBanner", resName: "settings_banner_ad_unit_id", label: "Settings screen banner (tbgSettingsBanner)"],
+]
+bannerPlacements.each { placement ->
+    def configured = admobProperties.getProperty(placement.property)
+    placement.configuredValue = configured
+    placement.isProduction = configured != null && configured != testBannerAdUnitId
+    // Gradle configures every buildType block regardless of which tasks are actually
+    // requested, so this must never be null - falls back to the test ID until real
+    // release validation (the taskGraph check below) actually gates a release task.
+    placement.releaseValue = placement.isProduction ? configured : testBannerAdUnitId
+}
+def hasProductionAdmobConfig = hasProductionAdmobAppId && bannerPlacements.every { it.isProduction }
+def releaseAdmobAppId = hasProductionAdmobAppId ? configuredAdmobAppId : testAdmobAppId
 
 gradle.taskGraph.whenReady { taskGraph ->
     // Exact task-name match only (not startsWith/contains): AGP has plenty of internal
@@ -52,14 +72,25 @@ gradle.taskGraph.whenReady { taskGraph ->
     def releaseArtifactTaskNames = ["assemble", "assembleRelease", "bundle", "bundleRelease", "build"] as Set
     def buildingRealRelease = taskGraph.allTasks.any { releaseArtifactTaskNames.contains(it.name) }
     if (buildingRealRelease && !hasProductionAdmobConfig && !allowTestAdsInRelease) {
+        def missing = []
+        if (!hasProductionAdmobAppId) {
+            missing << "  - admobAppId: production AdMob App ID - NOT an ad-unit ID, cannot be derived\n" +
+                    "    from one. Find it in AdMob console under Apps > (this app) > App settings."
+        }
+        bannerPlacements.each { placement ->
+            if (!placement.isProduction) missing << "  - ${placement.property}: ${placement.label}"
+        }
         throw new GradleException(
-                "Release build requested, but no production AdMob configuration was found.\n" +
+                "Release build requested, but production AdMob configuration is incomplete.\n" +
+                "Missing or still-placeholder values in admob.properties:\n" +
+                missing.join("\n") + "\n" +
                 "  - Copy admob.properties.example to admob.properties (gitignored) and fill in\n" +
-                "    your real admobAppId / bannerAdUnitId from the AdMob console, OR\n" +
+                "    the values above, OR\n" +
                 "  - For local release-build testing only (signing/R8/etc, not for distribution),\n" +
                 "    add 'useTestAdsForLocalRelease=true' to admob.properties to explicitly opt in\n" +
                 "    to Google's sample ad IDs in this release build.\n" +
-                "This check exists so a release build can never silently ship with sample ad IDs.")
+                "This check exists so a release build can never silently ship with sample or\n" +
+                "incomplete ad configuration.")
     }
 }
 
@@ -79,8 +110,12 @@ android {
         applicationId "com.tb.tetrisbrick.game"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 2
-        versionName "2.0"
+        // Owner-confirmed (2026-09-23) complete Play Console app-bundle list:
+        // versionCodes 1-5 exist, 5 is the highest uploaded (production is 5/5.0,
+        // internal testing 1/1.0). 6 is therefore the next available versionCode
+        // across ALL tracks, not just production - see CLAUDE_PROGRESS.md.
+        versionCode 6
+        versionName "6.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -94,7 +129,9 @@ android {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
             resValue "string", "admob_app_id", testAdmobAppId
-            resValue "string", "banner_ad_unit_id", testBannerAdUnitId
+            bannerPlacements.each { placement ->
+                resValue "string", placement.resName, testBannerAdUnitId
+            }
             buildConfigField "boolean", "ADS_CONFIGURED_FOR_RELEASE", "false"
         }
         release {
@@ -103,7 +140,9 @@ android {
             if (hasSigningConfig) signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             resValue "string", "admob_app_id", releaseAdmobAppId
-            resValue "string", "banner_ad_unit_id", releaseBannerAdUnitId
+            bannerPlacements.each { placement ->
+                resValue "string", placement.resName, placement.releaseValue
+            }
             buildConfigField "boolean", "ADS_CONFIGURED_FOR_RELEASE", hasProductionAdmobConfig.toString()
         }
     }
