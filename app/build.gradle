@@ -114,8 +114,8 @@ android {
         // versionCodes 1-5 exist, 5 is the highest uploaded (production is 5/5.0,
         // internal testing 1/1.0). 6 is therefore the next available versionCode
         // across ALL tracks, not just production - see CLAUDE_PROGRESS.md.
-        versionCode 6
-        versionName "6.0"
+        versionCode 7
+        versionName "7.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
